@@ -1,0 +1,270 @@
+/* ========================================
+   Google Fonts — Inter + JetBrains Mono
+   ======================================== */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+@import "tailwindcss";
+
+/* ========================================
+   Tema Base (Light & Dark)
+   ======================================== */
+:root {
+  --primary: oklch(67.47% 0.1725 259.61);
+  --primary-light: oklch(80% 0.12 259.61);
+  --primary-dark: oklch(50% 0.15 259.61);
+  --primary-foreground: #ffffff;
+
+  --surface: #f5f0eb;
+  --surface-card: #ffffff;
+  --surface-dark: #1a1a1a;
+  --surface-muted: #e8e2db;
+
+  --border: #1a1a1a;
+  --border-light: #3a3a3a;
+  --shadow-color: #1a1a1a;
+
+  --state-success: oklch(72% 0.18 155);
+  --state-error: oklch(62% 0.22 25);
+  --state-correct: oklch(85% 0.12 155);
+  --state-warning: oklch(80% 0.16 80);
+
+  /* Colores de dedos para visualización de teclado (light mode) */
+  --finger-left-pinky: oklch(75% 0.15 0);
+  --finger-left-ring: oklch(75% 0.15 45);
+  --finger-left-middle: oklch(75% 0.15 90);
+  --finger-left-index: oklch(75% 0.15 135);
+  --finger-right-index: oklch(75% 0.15 180);
+  --finger-right-middle: oklch(75% 0.15 225);
+  --finger-right-ring: oklch(75% 0.15 270);
+  --finger-right-pinky: oklch(75% 0.15 315);
+}
+
+.dark {
+  /* Primario igual o más profundo que en modo claro */
+  --primary: oklch(60% 0.1725 259.61);
+  --primary-light: oklch(70% 0.15 259.61);
+  --primary-dark: oklch(45% 0.15 259.61);
+  --primary-foreground: #ffffff;
+
+  /* Fondos oscuros */
+  --surface: #0f0f12;
+  --surface-card: #18181c;
+  --surface-dark: #f4f4f5; /* En dark mode, surface-dark se usa para el texto principal (blanco) */
+  --surface-muted: #27272a;
+
+  /* Bordes y sombras claras (inversión neobrutalista) */
+  --border: #e4e4e7;
+  --border-light: #52525b;
+  --shadow-color: #e4e4e7;
+
+  /* Colores de estado */
+  --state-success: oklch(65% 0.2 155);
+  --state-error: oklch(60% 0.22 25);
+  --state-correct: oklch(65% 0.18 155);
+  --state-warning: oklch(75% 0.18 80);
+
+  /* Colores de dedos adaptados para modo oscuro (colores neón/profundos) */
+  --finger-left-pinky: oklch(65% 0.2 0);
+  --finger-left-ring: oklch(65% 0.2 40);
+  --finger-left-middle: oklch(70% 0.18 100);
+  --finger-left-index: oklch(70% 0.18 145);
+  --finger-right-index: oklch(65% 0.18 190);
+  --finger-right-middle: oklch(70% 0.15 240);
+  --finger-right-ring: oklch(65% 0.2 280);
+  --finger-right-pinky: oklch(65% 0.2 330);
+}
+
+/* ========================================
+   Tailwind v4 Theme — Neobrutalismo Moderno
+   ======================================== */
+@theme {
+  /* --- Colores principales (monocromático) --- */
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* --- Superficies --- */
+  --color-surface: var(--surface);
+  --color-surface-card: var(--surface-card);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-muted: var(--surface-muted);
+
+  /* --- Bordes --- */
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+
+  /* --- Estados semánticos --- */
+  --color-state-success: var(--state-success);
+  --color-state-error: var(--state-error);
+  --color-state-correct: var(--state-correct);
+  --color-state-warning: var(--state-warning);
+
+  /* --- Border radius brutal --- */
+  --radius-brutal: 8px;
+  --radius-brutal-sm: 6px;
+  --radius-brutal-lg: 12px;
+
+  /* --- Sombras duras (sin desenfoque) --- */
+  --shadow-brutal: 4px 4px 0px 0px var(--shadow-color);
+  --shadow-brutal-sm: 2px 2px 0px 0px var(--shadow-color);
+  --shadow-brutal-lg: 6px 6px 0px 0px var(--shadow-color);
+  --shadow-brutal-pressed: 1px 1px 0px 0px var(--shadow-color);
+  --shadow-brutal-none: 0px 0px 0px 0px transparent;
+
+  /* --- Tipografía --- */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+
+  /* --- Finger colors for keyboard visualization --- */
+  --color-finger-left-pinky: var(--finger-left-pinky);
+  --color-finger-left-ring: var(--finger-left-ring);
+  --color-finger-left-middle: var(--finger-left-middle);
+  --color-finger-left-index: var(--finger-left-index);
+  --color-finger-right-index: var(--finger-right-index);
+  --color-finger-right-middle: var(--finger-right-middle);
+  --color-finger-right-ring: var(--finger-right-ring);
+  --color-finger-right-pinky: var(--finger-right-pinky);
+  --color-finger-thumb: var(--primary);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+html {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-surface-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes key-press {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(2px, 2px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+.animate-key-press {
+  animation: key-press 0.15s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-out;
+}
+
+/* ========================================
+   Neobrutalist Utilities
+   ======================================== */
+.brutal-border {
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-brutal);
+}
+
+.brutal-card {
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-brutal);
+  box-shadow: var(--shadow-brutal);
+  background-color: var(--color-surface-card);
+}
+
+.brutal-btn {
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-brutal);
+  box-shadow: var(--shadow-brutal);
+  transition: all 0.1s ease-out;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.brutal-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-brutal-sm);
+}
+
+.brutal-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: var(--shadow-brutal-pressed);
+}
+
+.brutal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-brutal);
+}
