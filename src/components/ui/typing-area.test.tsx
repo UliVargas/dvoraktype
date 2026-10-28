@@ -43,7 +43,7 @@ async function setup(text: string, nextText?: string) {
     input.value = value;
     await userEvent(input, "input", payload);
   };
-  return { input, read, type, userEvent };
+  return { screen, input, read, type, userEvent };
 }
 
 describe("TypingArea input handling", () => {
@@ -107,6 +107,19 @@ describe("TypingArea input handling", () => {
     await type("cd");
     expect(read("index")).toBe("2");
     expect(read("completions")).toBe("1");
+  });
+
+  it("moves the cursor as you type and removes it once the text is finished", async () => {
+    const { screen, type } = await setup("ab");
+    const cursorIndex = () =>
+      [...screen.querySelectorAll("[data-char-state]")].findIndex((c) =>
+        c.querySelector(".animate-cursor-blink"),
+      );
+    expect(cursorIndex()).toBe(0);
+    await type("a");
+    expect(cursorIndex()).toBe(1);
+    await type("b");
+    expect(screen.querySelector(".animate-cursor-blink")).toBeFalsy();
   });
 
   it("matches decomposed (NFD) input", async () => {

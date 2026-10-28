@@ -12,13 +12,13 @@ async function renderChar(char: string, state: CharState, isCurrent = false) {
 
 describe("TypingChar", () => {
   it.each([
-    ["pending", "text-surface-dark/40"],
-    ["correct", "text-state-success"],
-    ["error", "bg-state-error"],
-  ] as const)("marks %s characters", async (state, cls) => {
+    ["pending", ["text-surface-dark/40"]],
+    ["correct", ["text-state-success", "font-semibold"]],
+    ["error", ["text-white", "bg-state-error"]],
+  ] as const)("marks %s characters", async (state, classes) => {
     const { span } = await renderChar("a", state);
     expect(span.getAttribute("data-char-state")).toBe(state);
-    expect(span.className).toContain(cls);
+    for (const cls of classes) expect(span.className).toContain(cls);
     expect(span.textContent).toBe("a");
   });
 
@@ -37,6 +37,7 @@ describe("TypingChar", () => {
     const { span } = await renderChar(" ", "error");
     expect(span.className).toContain("min-w-[1ch]");
     expect(span.className).toContain("bg-state-error");
+    expect(span.className).toContain("text-white");
   });
 
   it("draws the cursor only on the current character", async () => {
