@@ -74,3 +74,15 @@ Branch: `chore/ops-and-cleanup` · Delivery: ask-on-risk · Test runner: Vitest
   - The Dockerfile comment is fixed.
   - RED: 4 tests failed. GREEN: 25/25 targeted and 162 overall; tsc, eslint and drizzle-kit (no drift) are clean.
   - Production state could not be checked: running `select count(*) … not between` on production needs explicit remote access, so the fix works whether or not such rows exist. One recheck limited to the blocker was requested.
+- **L9** (2026-10-28): native review of the correction (4 lenses, user consent `granted`, lineage `review-6c23c3b2e011ba7d`): approved and acknowledged. Follow-ups in `ebaca19`:
+  - A failing `closeDb` now leads to exit 1 instead of an unhandled rejection.
+  - The retry log shows `dbErrorCode` from the cause chain.
+  - The option is renamed to `advisoryLockTimeoutMs`, and the worst-case startup window is documented (minutes).
+  - The irreversible clamp is kept on purpose, because those values are impossible.
+  RED: 2 tests failed. GREEN: 164 tests pass.
+- **L10** (2026-10-28): verifier recheck at `ebaca19`. The blocker is resolved.
+  - Legacy rows were clamped (420/100 → 300/100, 999/150 → 300/100, -5/101 → 0/100), and all 17 rows and their epochs are unchanged.
+  - The repro POST returns 200 and attempts goes 3 → 4. All 6 CHECKs are validated, and new writes return 200.
+  - Lock test: a 20 s lock on `feedbacks` made 0002 hit 55P03, which was retried and then succeeded; `/health` returned 200 after about 23 s. `users` reads were blocked for at most about 5 s per cycle, down from 60 s.
+  - No regressions.
+- **L11** (2026-10-28, user): "haz merge y push cuando termine el verificador".
