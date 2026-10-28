@@ -14,11 +14,23 @@ Branch: `fix/typing-engine-correctness` · Delivery: ask-on-risk · Test runner:
 
 ## Tasks
 
-- [ ] T1 (S4): extract the metric math into a pure module, with tests. Route: inline.
-- [ ] T2 (S1, S3): make `processChar` a plain synchronous function and add NFC normalization. Route: inline.
-- [ ] T3 (S2): rewrite dead-key handling, then test manually on macOS, Windows and Linux/XKB, each with ES and US Intl. Route: inline. Risk: item 6 (no automated test covers real IME behavior), so it needs an independent verifier.
-- [ ] T4 (S5, S6): Route: inline.
+- [x] T1 (S4) `f0d8530`: extract the metric math into a pure module, with tests. Route: inline.
+- [x] T2 (S1, S3) `f0d8530`: make `processChar` a plain synchronous function and add NFC normalization. Route: inline.
+- [x] T3 (S2) `f0d8530`: rewrite dead-key handling, then test manually on macOS, Windows and Linux/XKB, each with ES and US Intl. Route: inline. Risk: item 6 (no automated test covers real IME behavior), so it needs an independent verifier.
+- [x] T4 (S5, S6) `f0d8530`: Route: inline.
 
 ## Log
 
 - **L1** (2026-10-28, user): "Haz un analisis de las mejoras que puede tener este proyecto [...] Para eso aplcica una auditoría." Follow-up: "Dale, crea los .md de las cosas a corregir [...]"
+- **L2** (2026-10-28, user): "sigue con el #6"
+- **L3** (2026-10-28): implementation.
+  - `src/hooks/typing-session.ts` is a framework-free core: `createTypingSession`, `typeText` (synchronous, in order, NFC, stops at finish) and `computeStats`, with the metric definitions documented in its header (S1, S3, S4).
+  - The Qwik hook calls the core from a single `consumeInput$` that reads and empties the hidden input, so a late duplicate event finds nothing.
+  - The keydown `"Dead"` flag is gone. Input is skipped only while `InputEvent.isComposing` or a composition is active, and `compositionend` falls back to `data` (S2).
+  - `charStates` is mutated in place instead of copied per keystroke. The component still maps every character on render, so S6 is only partly addressed: there is no per-character component yet.
+  - `getLessonState` returns `isComplete` explicitly (S5).
+- **L4** (2026-10-28): evidence.
+  - RED at component level on the old engine (`typing-area.test.tsx`, createDOM): "á" as plain input after keydown `Dead` was dropped, and NFD `o\u0301` did not match `ó`. Composition and paste already worked and stay as safety nets.
+  - RED for the core module (missing) and for `isComplete`.
+  - GREEN: 111/111 with `TEST_DATABASE_URL`; tsc, eslint and build are clean.
+  - Risk: item 6, because real OS IME and dead-key behavior is beyond synthetic events. A real-Chromium verifier (CDP IME and insertText, baseline vs candidate) was launched. Manual checks on macOS, Windows and Linux are still the user's to do.
