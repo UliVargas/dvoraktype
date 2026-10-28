@@ -21,6 +21,7 @@ import {
 } from "@qwikest/icons/lucide";
 import { lessons } from "../../../data/lessons";
 import { progressService } from "../../../server/progress.service";
+import { getSessionId } from "../../../server/session";
 import {
   exerciseBelongsToLesson,
   exerciseResultSchema,
@@ -38,7 +39,7 @@ import { Card } from "../../../components/ui/card";
 import { useLayoutVariant } from "../../../context/layout-context";
 
 export const useLessonState = routeLoader$(async (requestEvent) => {
-  const sessionId = requestEvent.cookie.get("sessionId")?.value;
+  const sessionId = getSessionId(requestEvent.cookie);
   const lessonId = requestEvent.params.id;
   if (!sessionId) {
     throw requestEvent.redirect(302, "/");
@@ -60,7 +61,7 @@ export const useLessonData = routeLoader$((requestEvent) => {
 
 export const useSaveExercise = routeAction$(
   async (data, requestEvent) => {
-    const sessionId = requestEvent.cookie.get("sessionId")?.value;
+    const sessionId = getSessionId(requestEvent.cookie);
     if (!sessionId) return { success: false };
 
     if (!(await progressService.isLessonUnlocked(sessionId, data.lessonId))) {

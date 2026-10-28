@@ -75,6 +75,14 @@ El esquema vive en `src/db/schema.ts` y las migraciones versionadas en `drizzle/
 - No uses `drizzle-kit push` fuera de bases de datos desechables: modifica el esquema sin dejar historial, y así se ocultan migraciones que faltan.
 - En producción `DATABASE_URL` es obligatoria: sin ella el servidor no arranca.
 
+### Variables de entorno
+
+| Variable | Obligatoria | Uso |
+|---|---|---|
+| `DATABASE_URL` | Sí, en producción | Conexión a PostgreSQL. |
+| `ORIGIN` | No | Origen público para la protección CSRF (por ejemplo `https://dvoraktype.com`). Si no se define, se deriva de `X-Forwarded-Proto` y `X-Forwarded-Host`, que es lo que envía el proxy de Railway. |
+| `PORT` | No | Puerto HTTP (por defecto `3000`). |
+
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son más que bienvenidas! Si notas que falta una tecla en el mapa interactivo de Dvorak, si quieres añadir más lecciones o simplemente optimizar el código:

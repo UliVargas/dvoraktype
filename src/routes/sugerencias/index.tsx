@@ -1,28 +1,31 @@
 import { component$ } from "@builder.io/qwik";
-import { Form, routeAction$, z, zod$ } from "@builder.io/qwik-city";
+import { Form, routeAction$, zod$ } from "@builder.io/qwik-city";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { progressService } from "../../server/progress.service";
+import { feedbackLimiter } from "../../server/rate-limit";
+import { feedbackSchema, isHoneypotFilled } from "../../server/request-rules";
+import { ensureSessionId } from "../../server/session";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { LuMessageSquare, LuSend } from "@qwikest/icons/lucide";
 
 export const useSubmitFeedback = routeAction$(
   async (data, requestEvent) => {
-    let sessionId = requestEvent.cookie.get("sessionId")?.value;
-    if (!sessionId) {
-      sessionId = crypto.randomUUID();
-      requestEvent.cookie.set("sessionId", sessionId, {
-        path: "/",
-        maxAge: [365, "days"],
+    const sessionId = ensureSessionId(requestEvent.cookie);
+
+    // Pretend success so bots don't learn to skip the hidden field
+    if (isHoneypotFilled(data)) return { success: true };
+
+    const allowedForIp = feedbackLimiter.take(`ip:${requestEvent.clientConn.ip}`);
+    const allowedForSession = feedbackLimiter.take(`session:${sessionId}`);
+    if (!allowedForIp || !allowedForSession) {
+      return requestEvent.fail(429, {
+        message: "Has enviado demasiados mensajes. Inténtalo de nuevo más tarde.",
       });
     }
 
     try {
-      await progressService.submitFeedback(
-        sessionId,
-        data.type as string,
-        data.message as string
-      );
+      await progressService.submitFeedback(sessionId, data.type, data.message);
       return { success: true };
     } catch {
       return requestEvent.fail(500, {
@@ -30,10 +33,7 @@ export const useSubmitFeedback = routeAction$(
       });
     }
   },
-  zod$({
-    type: z.enum(["suggestion", "bug", "other"]),
-    message: z.string().min(10, "El mensaje debe tener al menos 10 caracteres."),
-  })
+  zod$(feedbackSchema),
 );
 
 export default component$(() => {
@@ -98,6 +98,7 @@ export default component$(() => {
                   rows={5}
                   class="brutal-input bg-surface border-2 border-border p-3 rounded-brutal-sm font-medium outline-none focus:border-primary transition-colors resize-y min-h-[120px]"
                   placeholder="Describe tu idea, problema o comentario con el mayor detalle posible..."
+                  maxLength={2000}
                   required
                 ></textarea>
                 {action.value?.fieldErrors?.message && (
@@ -110,6 +111,12 @@ export default component$(() => {
                     {action.value.message}
                   </p>
                 )}
+              </div>
+
+              {/* Honeypot: invisible to people and assistive tech, filled by bots */}
+              <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+                <label for="website">Sitio web</label>
+                <input type="text" name="website" id="website" tabIndex={-1} autoComplete="off" />
               </div>
 
               <div class="pt-2">

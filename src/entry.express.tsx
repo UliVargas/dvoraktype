@@ -20,6 +20,10 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { connectionString } from "./db";
 import { runMigrations } from "./db/migrate";
+import { clientIp, resolveOrigin } from "./server/request-rules";
+
+const headerValue = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
 
 declare global {
   type QwikCityPlatform = PlatformNode;
@@ -46,14 +50,11 @@ const PORT = process.env.PORT ?? 3000;
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
-  // getOrigin(req) {
-  //   // If deploying under a proxy, you may need to build the origin from the request headers
-  //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
-  //   const protocol = req.headers["x-forwarded-proto"] ?? "http";
-  //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
-  //   const host = req.headers["x-forwarded-host"] ?? req.headers.host;
-  //   return `${protocol}://${host}`;
-  // }
+  getOrigin: (req) =>
+    resolveOrigin((name) => headerValue(req.headers[name]), process.env.ORIGIN),
+  getClientConn: (req) => ({
+    ip: clientIp(headerValue(req.headers["x-forwarded-for"]), req.socket.remoteAddress),
+  }),
 });
 
 // Create the express server

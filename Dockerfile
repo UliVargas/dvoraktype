@@ -43,8 +43,6 @@ FROM base AS final
 # Use production node environment by default.
 ENV NODE_ENV=production
 
-# Pay attention to set the correct origin and port for the application.
-ENV ORIGIN=https://dvoraktype.com
 
 # Run the application as a non-root user.
 USER node

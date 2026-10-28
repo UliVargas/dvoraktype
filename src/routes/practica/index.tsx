@@ -8,12 +8,13 @@ import { StatsBar } from "../../components/ui/stats-bar";
 import { esDvorakLayout, usDvorakIntlLayout } from "../../data/dvorak-layout";
 import { getRandomQuote, type Quote } from "../../data/quotes";
 import { progressService } from "../../server/progress.service";
+import { getSessionId } from "../../server/session";
 import { freePracticeResultSchema } from "../../server/progress-rules";
 import { useLayoutVariant } from "../../context/layout-context";
 
 export const useSaveFreePractice = routeAction$(
   async (data, requestEvent) => {
-    const sessionId = requestEvent.cookie.get("sessionId")?.value;
+    const sessionId = getSessionId(requestEvent.cookie);
     if (!sessionId) return { success: false };
 
     await progressService.saveFreePracticeResult(sessionId, "es", data);

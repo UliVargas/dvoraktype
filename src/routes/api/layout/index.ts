@@ -1,21 +1,24 @@
 import type { RequestHandler } from "@builder.io/qwik-city";
 import { progressService } from "../../../server/progress.service";
+import { parseLayoutRequest } from "../../../server/request-rules";
+import { getSessionId } from "../../../server/session";
 
 export const onPost: RequestHandler = async (requestEvent) => {
-  const sessionId = requestEvent.cookie.get("sessionId")?.value;
+  const sessionId = getSessionId(requestEvent.cookie);
   if (!sessionId) {
     requestEvent.json(401, { error: "No session" });
     return;
   }
 
-  const body = await requestEvent.request.json();
-  const variant = body?.variant;
-
-  if (!variant || !["es-dvorak-xkb", "us-dvorak-intl"].includes(variant)) {
-    requestEvent.json(400, { error: "Invalid variant" });
+  const parsed = parseLayoutRequest(
+    requestEvent.request.headers.get("content-type"),
+    await requestEvent.request.text(),
+  );
+  if (!parsed.ok) {
+    requestEvent.json(400, { error: parsed.error });
     return;
   }
 
-  await progressService.updateUserSettings(sessionId, variant);
+  await progressService.updateUserSettings(sessionId, parsed.variant);
   requestEvent.json(200, { success: true });
 };

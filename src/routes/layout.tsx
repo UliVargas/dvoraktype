@@ -10,6 +10,7 @@ import type { DocumentHead } from "@builder.io/qwik-city";
 import { routeLoader$ } from "@builder.io/qwik-city";
 import { type LayoutVariant } from "../data/types";
 import { progressService } from "../server/progress.service";
+import { ensureSessionId } from "../server/session";
 
 import {
   LayoutVariantContext,
@@ -20,14 +21,7 @@ import { Header } from "../components/ui/header";
 import { Footer } from "../components/ui/footer";
 
 export const useLayoutVariantLoader = routeLoader$(async (requestEvent) => {
-  let sessionId = requestEvent.cookie.get("sessionId")?.value;
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    requestEvent.cookie.set("sessionId", sessionId, {
-      path: "/",
-      maxAge: [365, "days"],
-    });
-  }
+  const sessionId = ensureSessionId(requestEvent.cookie);
 
   const settings = await progressService.getUserSettings(sessionId);
   return settings.layoutVariant as LayoutVariant;
