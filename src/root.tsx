@@ -35,7 +35,8 @@ export default component$(() => {
         />
         <RouterHead />
       </head>
-      <body lang="es">
+      {/* lang="es" is set on <html> through containerAttributes in entry.ssr.tsx */}
+      <body>
         <RouterOutlet />
       </body>
     </QwikCityProvider>

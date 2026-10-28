@@ -28,9 +28,17 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
     }
   });
 
+  // Screen reader announcements: the current error, or completion
+  const { state } = engine;
+  const announcement = state.isFinished
+    ? "Ejercicio completado."
+    : state.charStates[state.currentIndex] === "error"
+      ? `Error en el carácter ${state.currentIndex + 1} de ${state.targetChars.length}: se esperaba «${state.targetChars[state.currentIndex]}».`
+      : "";
+
   return (
     <div
-      class="brutal-card p-6 md:p-8 text-2xl md:text-3xl font-mono leading-relaxed tracking-wide focus:outline-none relative cursor-text"
+      class="brutal-card p-6 md:p-8 text-2xl md:text-3xl font-mono leading-relaxed tracking-wide focus:outline-none focus-within:ring-4 focus-within:ring-primary/50 relative cursor-text"
       onClick$={() => {
         engine.hiddenInputRef.value?.focus();
       }}
@@ -51,7 +59,11 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
         onInput$={engine.handleInput$}
       />
 
-      <div class="wrap-break-word select-none">
+      <p role="status" aria-live="polite" class="sr-only">
+        {announcement}
+      </p>
+
+      <div class="wrap-break-word select-none" aria-hidden="true">
         {engine.state.targetChars.map((char, index) => {
           const charState = engine.state.charStates[index];
           const isCurrent = index === engine.state.currentIndex;
@@ -59,11 +71,14 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
           let stateClass = "text-surface-dark/40";
           if (charState === "correct")
             stateClass = "text-state-success font-semibold";
-          if (charState === "error") stateClass = "text-white bg-state-error";
+          // Errors are also underlined so they don't rely on color alone
+          if (charState === "error")
+            stateClass = "text-white bg-state-error underline decoration-wavy decoration-2";
 
           return (
             <span
               key={`${index}-${char}`}
+              data-char-state={charState}
               class={[
                 "relative transition-colors duration-100",
                 stateClass,

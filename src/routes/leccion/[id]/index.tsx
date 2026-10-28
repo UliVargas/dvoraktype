@@ -13,12 +13,7 @@ import {
   zod$,
   type DocumentHead,
 } from "@builder.io/qwik-city";
-import {
-  LuArrowLeft,
-  LuRefreshCw,
-  LuTrophy,
-  LuArrowRight,
-} from "@qwikest/icons/lucide";
+import { LuArrowLeft } from "@qwikest/icons/lucide";
 import { lessons } from "../../../data/lessons";
 import { progressService } from "../../../server/progress.service";
 import { getSessionId } from "../../../server/session";
@@ -30,9 +25,7 @@ import { getLayoutDefinition } from "../../../data/layout-registry";
 import { type TypingStats } from "../../../data/types";
 import { TypingArea } from "../../../components/ui/typing-area";
 import { Keyboard } from "../../../components/ui/keyboard";
-import { StatsBar } from "../../../components/ui/stats-bar";
-import { Button } from "../../../components/ui/button";
-import { Card } from "../../../components/ui/card";
+import { ResultsDialog } from "../../../components/ui/results-dialog";
 import { useLayoutVariant } from "../../../context/layout-context";
 
 export const useLessonState = routeLoader$(async (requestEvent) => {
@@ -224,65 +217,17 @@ export default component$(() => {
       />
 
       {showResults.value && currentStats.value && (
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-dark/40 backdrop-blur-sm animate-fade-in">
-          <Card
-            class={`max-w-md w-full bg-surface ${!passedCurrent ? "animate-shake" : ""}`}
-          >
-            <div class="text-center mb-6">
-              <div
-                class={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 brutal-border mb-4 ${passedCurrent ? "bg-state-success text-white" : "bg-state-warning"}`}
-              >
-                {passedCurrent ? (
-                  <LuTrophy class="w-8 h-8" />
-                ) : (
-                  <LuRefreshCw class="w-8 h-8" />
-                )}
-              </div>
-              <h3 class="text-3xl font-black mb-2">
-                {passedCurrent ? "¡Excelente!" : "Casi lo logras"}
-              </h3>
-              <p class="font-medium text-surface-dark/70">
-                {passedCurrent
-                  ? "Has superado los requisitos de este ejercicio."
-                  : "Sigue practicando para alcanzar la velocidad y precisión requerida."}
-              </p>
-            </div>
-
-            <StatsBar
-              wpm={currentStats.value.wpm}
-              accuracy={currentStats.value.accuracy}
-              errors={currentStats.value.errorChars}
-              elapsed={currentStats.value.elapsedTime}
-            />
-
-            <div class="mt-8 flex flex-col sm:flex-row gap-4">
-              <Button
-                variant={passedCurrent ? "secondary" : "primary"}
-                size="lg"
-                onClick$={handleRetry}
-                class="flex-1 flex justify-center items-center gap-2"
-              >
-                <LuRefreshCw class="w-5 h-5" /> Reintentar
-              </Button>
-              {passedCurrent && (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick$={handleNext}
-                  class="flex-1 flex justify-center items-center gap-2 text-lg border-4"
-                >
-                  <span class="font-black">
-                    {currentExerciseIndex.value <
-                    lessonData.value.exercises.length - 1
-                      ? "Siguiente"
-                      : "Completar"}
-                  </span>
-                  <LuArrowRight class="w-6 h-6 stroke-3" />
-                </Button>
-              )}
-            </div>
-          </Card>
-        </div>
+        <ResultsDialog
+          passed={passedCurrent}
+          stats={currentStats.value}
+          nextLabel={
+            currentExerciseIndex.value < lessonData.value.exercises.length - 1
+              ? "Siguiente"
+              : "Completar"
+          }
+          onRetry$={handleRetry}
+          onNext$={handleNext}
+        />
       )}
 
       <div
