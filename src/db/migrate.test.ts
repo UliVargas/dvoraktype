@@ -115,7 +115,7 @@ describe.skipIf(!testDatabaseUrl)("runMigrations (Postgres)", () => {
     const holder = postgres(url, { max: 1, onnotice: () => {} });
     await holder`select pg_advisory_lock(${MIGRATION_LOCK_ID})`;
     try {
-      await expect(runMigrations(url, migrationsDir, { lockTimeoutMs: 300 })).rejects.toThrow(
+      await expect(runMigrations(url, migrationsDir, { advisoryLockTimeoutMs: 300 })).rejects.toThrow(
         /lock timeout/i,
       );
     } finally {

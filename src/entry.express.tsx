@@ -23,7 +23,7 @@ import { closeDb, connectionString, pingDb } from "./db";
 import { runMigrations } from "./db/migrate";
 import { createHealthHandler } from "./server/health";
 import { clientIp, resolveOrigin } from "./server/request-rules";
-import { retryWithBackoff } from "./server/retry";
+import { dbErrorCode, retryWithBackoff } from "./server/retry";
 import { createShutdown } from "./server/shutdown";
 
 const headerValue = (value: string | string[] | undefined) =>
@@ -44,18 +44,18 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
   throw new Error("DATABASE_URL is required in production");
 }
 
-// Bring the database schema up to date before accepting traffic. The
-// database may still be booting (e.g. during a deploy), so connection
-// failures and table-lock timeouts are retried: 7 attempts with 45 s of
-// backoff in total, each attempt bounded by a 10 s connect timeout
-// (src/db/migrate.ts).
+// Bring the database schema up to date before accepting traffic. Transient
+// failures are retried 7 times with 45 s of backoff in total: the database
+// still booting (each connection attempt is bounded at 10 s), a table lock
+// held by live traffic (5 s per attempt), or another instance holding the
+// migration lock (60 s per attempt). See src/db/migrate.ts.
 await retryWithBackoff(() => runMigrations(connectionString, migrationsDir), {
   attempts: 7,
   baseMs: 1000,
   maxMs: 15_000,
   onRetry: (error, attempt, delayMs) =>
     console.warn(
-      `Database not reachable (${(error as { code?: string }).code}), retry ${attempt} in ${delayMs} ms`,
+      `Startup migrations failed with a transient database error (${dbErrorCode(error)}), retry ${attempt} in ${delayMs} ms`,
     ),
 });
 

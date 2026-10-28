@@ -17,14 +17,19 @@ const TRANSIENT_CODES = new Set([
   "55P03", // lock_not_available: a migration timed out waiting for a table lock
 ]);
 
-/** Checks the error and its `cause` chain (drizzle wraps driver errors). */
-export function isTransientDbError(error: unknown): boolean {
+/** The first error code in the error's `cause` chain (drizzle wraps driver errors). */
+export function dbErrorCode(error: unknown): string | undefined {
   for (let e = error, depth = 0; e && depth < 5; depth++) {
     const code = (e as { code?: unknown }).code;
-    if (typeof code === "string" && TRANSIENT_CODES.has(code)) return true;
+    if (typeof code === "string") return code;
     e = (e as { cause?: unknown }).cause;
   }
-  return false;
+  return undefined;
+}
+
+export function isTransientDbError(error: unknown): boolean {
+  const code = dbErrorCode(error);
+  return code !== undefined && TRANSIENT_CODES.has(code);
 }
 
 interface RetryOptions {

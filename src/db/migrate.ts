@@ -32,7 +32,9 @@ interface Journal {
 export async function runMigrations(
   connectionString: string,
   migrationsFolder: string,
-  { lockTimeoutMs = 60_000 }: { lockTimeoutMs?: number } = {},
+  // How long to wait for another instance's migration lock. Table locks taken
+  // by the migrations themselves wait at most 5 s (see below).
+  { advisoryLockTimeoutMs = 60_000 }: { advisoryLockTimeoutMs?: number } = {},
 ) {
   // A single dedicated connection: advisory locks are session-scoped.
   const client = postgres(connectionString, {
@@ -42,7 +44,7 @@ export async function runMigrations(
   });
   try {
     // Don't wait forever behind an instance that is stuck holding the lock...
-    await client`select set_config('lock_timeout', ${String(Math.trunc(lockTimeoutMs))}, false)`;
+    await client`select set_config('lock_timeout', ${String(Math.trunc(advisoryLockTimeoutMs))}, false)`;
     await client`select pg_advisory_lock(${MIGRATION_LOCK_ID})`;
     // ...and once it's ours, keep table-lock waits short: while an ALTER waits
     // for its exclusive lock, other queries on that table queue behind it.

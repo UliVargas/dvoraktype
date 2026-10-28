@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createHealthHandler } from "./health";
-import { isTransientDbError, retryWithBackoff } from "./retry";
+import { dbErrorCode, isTransientDbError, retryWithBackoff } from "./retry";
 import { createShutdown } from "./shutdown";
 
 describe("retryWithBackoff", () => {
@@ -37,6 +37,12 @@ describe("isTransientDbError", () => {
   it("looks through wrapped errors (drizzle puts the driver error in cause)", () => {
     const wrapped = new Error("Failed query", { cause: Object.assign(new Error("x"), { code: "ECONNRESET" }) });
     expect(isTransientDbError(wrapped)).toBe(true);
+  });
+
+  it("reports the code found in the cause chain", () => {
+    const wrapped = new Error("Failed query", { cause: Object.assign(new Error("x"), { code: "55P03" }) });
+    expect(dbErrorCode(wrapped)).toBe("55P03");
+    expect(dbErrorCode(new Error("plain"))).toBeUndefined();
   });
 
   it.each([["42601"], ["28P01"], [undefined]])("treats %s as permanent", (code) => {
@@ -112,6 +118,19 @@ describe("createShutdown", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("exits 1 when closing the database pool fails", async () => {
+    const exit = vi.fn();
+    const shutdown = createShutdown({
+      server: { close: (cb: () => void) => cb() },
+      closeDb: async () => { throw new Error("pool end failed"); },
+      timeoutMs: 1000,
+      exit,
+      log: () => {},
+    });
+    await expect(shutdown("SIGTERM")).resolves.toBeUndefined();
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("only runs once when the signal repeats", async () => {

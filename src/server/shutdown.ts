@@ -26,13 +26,19 @@ export function createShutdown({ server, closeDb, timeoutMs, exit, log }: Shutdo
       }, timeoutMs);
       timer.unref?.();
 
-      const closed = new Promise<void>((resolve) => server.close(() => resolve()));
-      // Idle keep-alive sockets would otherwise hold close() until they time out
-      server.closeIdleConnections?.();
-      await closed;
-      await closeDb();
-      clearTimeout(timer);
-      exit(0);
+      try {
+        const closed = new Promise<void>((resolve) => server.close(() => resolve()));
+        // Idle keep-alive sockets would otherwise hold close() until they time out
+        server.closeIdleConnections?.();
+        await closed;
+        await closeDb();
+        exit(0);
+      } catch (error) {
+        log(`Shutdown failed: ${error instanceof Error ? error.message : String(error)}`);
+        exit(1);
+      } finally {
+        clearTimeout(timer);
+      }
     })();
     return running;
   };
