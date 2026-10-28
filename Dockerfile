@@ -1,4 +1,4 @@
-ARG NODE_VERSION=24
+ARG NODE_VERSION=24.22.1
 
 ################################################################################
 # Use node image for base image for all stages.
@@ -61,4 +61,4 @@ COPY --from=build --chown=node:node /usr/src/app/drizzle ./drizzle
 EXPOSE 3000
 
 # Run the application.
-CMD ["pnpm", "run", "serve"]
+CMD ["node", "server/entry.express"]

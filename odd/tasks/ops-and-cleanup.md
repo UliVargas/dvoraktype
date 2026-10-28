@@ -33,3 +33,4 @@ Branch: `chore/ops-and-cleanup` · Delivery: ask-on-risk · Test runner: Vitest
 ## Log
 
 - **L1** (2026-10-28, user): "Haz un analisis de las mejoras que puede tener este proyecto [...] Para eso aplcica una auditoría." Follow-up: "Dale, crea los .md de las cosas a corregir [...]"
+- **L2** (2026-10-28): S8 was done early as part of the security update (branch `chore/security-updates`). The container now runs `node server/entry.express`: startup went from about 13 s to about 1 s, with no runtime pnpm download.

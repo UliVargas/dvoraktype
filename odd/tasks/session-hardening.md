@@ -21,3 +21,4 @@ Branch: `fix/session-hardening` · Delivery: ask-on-risk · Test runner: Vitest
 ## Log
 
 - **L1** (2026-10-28, user): "Haz un analisis de las mejoras que puede tener este proyecto [...] Para eso aplcica una auditoría." Follow-up: "Dale, crea los .md de las cosas a corregir [...]"
+- **L2** (2026-10-28): observed, and identical before and after the dependency update: a form POST from a foreign `Origin` gets 403 (the Qwik CSRF check works), but a JSON POST to `/api/layout` from a foreign `Origin` gets 200. Qwik only checks form content types, and browsers need a CORS preflight to send cross-site JSON. Under S3, also reject requests whose `Content-Type` is not `application/json`, and check `Origin` explicitly.
