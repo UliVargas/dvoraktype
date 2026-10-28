@@ -69,6 +69,22 @@ export function resolveOrigin(
 }
 
 /**
+ * TRUSTED_PROXY_HOPS as a non-negative integer. Anything else falls back to 1
+ * (Railway's edge) with a warning: silently using 0 would rate-limit every
+ * client by the edge's address, in a single shared bucket.
+ */
+export function parseTrustedProxyHops(
+  raw: string | undefined,
+  warn: (message: string) => void,
+): number {
+  if (raw === undefined) return 1;
+  const hops = Number(raw);
+  if (raw.trim() !== "" && Number.isInteger(hops) && hops >= 0) return hops;
+  warn(`Invalid TRUSTED_PROXY_HOPS ${JSON.stringify(raw)}, using 1`);
+  return 1;
+}
+
+/**
  * Client IP for rate limiting. Each trusted proxy appends the address it saw
  * to X-Forwarded-For, so the client's address is `trustedHops` entries from the
  * end; anything before it may have been sent by the client itself. Railway's

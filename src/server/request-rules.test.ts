@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   clientIp,
   feedbackSchema,
+  parseTrustedProxyHops,
   isHoneypotFilled,
   parseLayoutRequest,
   resolveOrigin,
@@ -89,6 +90,23 @@ describe("resolveOrigin", () => {
         undefined,
       ),
     ).toBe("https://a.example");
+  });
+});
+
+describe("parseTrustedProxyHops", () => {
+  it.each([
+    [undefined, 1],
+    ["1", 1],
+    ["0", 0],
+    ["2", 2],
+  ])("reads %s as %i", (raw, expected) => {
+    expect(parseTrustedProxyHops(raw, () => {})).toBe(expected);
+  });
+
+  it.each([[""], ["abc"], ["1.5"], ["-1"]])("falls back to 1 and warns for %j", (raw) => {
+    const warnings: string[] = [];
+    expect(parseTrustedProxyHops(raw, (m) => warnings.push(m))).toBe(1);
+    expect(warnings).toHaveLength(1);
   });
 });
 

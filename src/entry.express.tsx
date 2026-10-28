@@ -22,7 +22,11 @@ import compression from "compression";
 import { closeDb, connectionString, pingDb } from "./db";
 import { runMigrations } from "./db/migrate";
 import { createHealthHandler } from "./server/health";
-import { clientIp, resolveOrigin } from "./server/request-rules";
+import {
+  clientIp,
+  parseTrustedProxyHops,
+  resolveOrigin,
+} from "./server/request-rules";
 import { dbErrorCode, retryWithBackoff } from "./server/retry";
 import { createShutdown } from "./server/shutdown";
 
@@ -63,7 +67,10 @@ await retryWithBackoff(() => runMigrations(connectionString, migrationsDir), {
 const PORT = process.env.PORT ?? 3000;
 
 // Proxies in front of the app that append to X-Forwarded-For (Railway's edge: 1)
-const TRUSTED_PROXY_HOPS = Number(process.env.TRUSTED_PROXY_HOPS ?? 1);
+const TRUSTED_PROXY_HOPS = parseTrustedProxyHops(
+  process.env.TRUSTED_PROXY_HOPS,
+  (message) => console.warn(message),
+);
 
 // Create the Qwik City Node middleware
 const { router, notFound } = createQwikCity({

@@ -28,6 +28,8 @@ export const useSaveFreePractice = routeAction$(
 export default component$(() => {
   const saveAction = useSaveFreePractice();
   const saveError = useSignal<string | undefined>(undefined);
+  // Only the latest save decides the alert, even if an older one resolves later
+  const saveAttempt = useSignal(0);
   const layoutVariant = useLayoutVariant();
 
   const currentQuote = useSignal<Quote>(getRandomQuote("es"));
@@ -40,6 +42,8 @@ export default component$(() => {
   );
 
   const handleComplete = $(async (stats: TypingStats) => {
+    const attempt = ++saveAttempt.value;
+    saveError.value = undefined;
     const submitted = saveAction.submit({
       wpm: stats.wpm,
       accuracy: stats.accuracy,
@@ -51,7 +55,8 @@ export default component$(() => {
     resetKey.value = Date.now().toString();
 
     // Tell the user if the finished quote's result wasn't saved
-    saveError.value = await saveErrorOf(submitted);
+    const error = await saveErrorOf(submitted);
+    if (attempt === saveAttempt.value) saveError.value = error;
   });
 
   return (

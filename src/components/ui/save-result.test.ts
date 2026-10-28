@@ -19,3 +19,4 @@ describe("saveErrorOf", () => {
     expect(await saveErrorOf(Promise.reject(new Error("offline")))).toBe(SAVE_ERROR_MESSAGE);
   });
 });
+

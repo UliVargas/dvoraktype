@@ -87,6 +87,8 @@ export default component$(() => {
   const currentStats = useSignal<TypingStats | null>(null);
   const showResults = useSignal(false);
   const saveError = useSignal<string | undefined>(undefined);
+  // Only the latest save decides the alert, even if an older one resolves later
+  const saveAttempt = useSignal(0);
   const resetKey = useSignal(Date.now().toString());
   const currentTypingIndex = useSignal(0);
 
@@ -135,8 +137,9 @@ export default component$(() => {
       });
     }
 
+    const attempt = ++saveAttempt.value;
     saveError.value = undefined;
-    saveError.value = await saveErrorOf(
+    const error = await saveErrorOf(
       saveAction.submit({
         lessonId: lesson.id,
         exerciseId: currentExercise.value.id,
@@ -144,6 +147,7 @@ export default component$(() => {
         accuracy: stats.accuracy,
       }),
     );
+    if (attempt === saveAttempt.value) saveError.value = error;
   });
 
   const handleNext = $(() => {
