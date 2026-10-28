@@ -93,3 +93,31 @@ describe("lessons per layout", () => {
     }
   });
 });
+
+describe("difficulty curve", () => {
+  // Production data (2026-10-28): attempts per lesson climbed from 3 to 18.7 by
+  // lesson 05 and half the learners stopped there; engaged learners' median
+  // free-practice speed was 19 WPM. Requirements now rise gently.
+  it("starts within reach of someone new to Dvorak", () => {
+    expect(lessons[0].requiredWpm).toBeLessThanOrEqual(6);
+    expect(lessons[0].requiredAccuracy).toBeLessThanOrEqual(70);
+  });
+
+  it("never raises speed by more than 1 WPM or accuracy by more than 3 points per lesson", () => {
+    const jumps = lessons.slice(1).flatMap((lesson, i) => {
+      const previous = lessons[i];
+      const wpmStep = lesson.requiredWpm - previous.requiredWpm;
+      const accuracyStep = lesson.requiredAccuracy - previous.requiredAccuracy;
+      return wpmStep < 0 || wpmStep > 1 || accuracyStep < 0 || accuracyStep > 3
+        ? [`${lesson.id}: +${wpmStep} WPM, +${accuracyStep}%`]
+        : [];
+    });
+    expect(jumps).toEqual([]);
+  });
+
+  it("ends below the speed engaged learners reach in free practice", () => {
+    const last = lessons[lessons.length - 1];
+    expect(last.requiredWpm).toBeLessThan(19);
+    expect(last.requiredAccuracy).toBeLessThanOrEqual(90);
+  });
+});

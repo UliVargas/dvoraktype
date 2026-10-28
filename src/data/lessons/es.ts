@@ -19,6 +19,10 @@
 // - latam-dvorak-xkb: letras iguales; { } en el meñique derecho de la fila guía
 //   y la tecla muerta ´ a la derecha de la L (no hay ç).
 // Un ejercicio solo usa teclas enseñadas en su lección o en las anteriores.
+//
+// Metas: la velocidad sube como mucho 1 WPM y la precisión 3 puntos por
+// lección (la precisión cuenta cada pulsación fallida). La 05 repite las metas
+// de la 04: con las anteriores era donde más se repetía y se abandonaba.
 // ============================================================================
 
 import type { Lesson } from "../types";
@@ -39,7 +43,7 @@ export const lessons: readonly Lesson[] = [
       '(Top Row) y abajo la "Fila Inferior" (Bottom Row). ' +
       "Este primer ejercicio te servirá para ubicar tus dedos en la Fila Guía.",
     keys: ["a", "o", "e", "u", "i", "d", "r", "t", "n", "s"],
-    requiredWpm: 8,
+    requiredWpm: 6,
     requiredAccuracy: 70,
     exercises: [
       {
@@ -75,8 +79,8 @@ export const lessons: readonly Lesson[] = [
       "Primeros pasos con las seis teclas centrales de la fila guía. " +
       "Estas son las teclas donde descansan tus dedos índice y medio.",
     keys: ["e", "u", "i", "d", "r", "t"],
-    requiredWpm: 10,
-    requiredAccuracy: 80,
+    requiredWpm: 7,
+    requiredAccuracy: 73,
     exercises: [
       {
         id: "L1-E1",
@@ -119,8 +123,8 @@ export const lessons: readonly Lesson[] = [
       "Añadimos las teclas exteriores de la fila guía: a, o, n, s. " +
       "Con estas diez teclas ya puedes formar muchas palabras en español.",
     keys: ["a", "o", "n", "s"],
-    requiredWpm: 12,
-    requiredAccuracy: 82,
+    requiredWpm: 8,
+    requiredAccuracy: 76,
     exercises: [
       {
         id: "L2-E1",
@@ -158,8 +162,8 @@ export const lessons: readonly Lesson[] = [
       "Domina toda la fila guía incluyendo las teclas del meñique derecho. " +
       "Practica combinaciones y palabras usando solo la fila de descanso.",
     keys: ["´", "ç"],
-    requiredWpm: 14,
-    requiredAccuracy: 84,
+    requiredWpm: 9,
+    requiredAccuracy: 78,
     exercises: [
       {
         id: "L3-E1",
@@ -207,8 +211,8 @@ export const lessons: readonly Lesson[] = [
       "Sube a la fila superior con la mano izquierda. Aprende punto, coma, " +
       "ñ, p e y. La ñ es esencial para escribir en español.",
     keys: [".", ",", "ñ", "p", "y"],
-    requiredWpm: 14,
-    requiredAccuracy: 84,
+    requiredWpm: 10,
+    requiredAccuracy: 80,
     exercises: [
       {
         id: "L4-E1",
@@ -270,8 +274,8 @@ export const lessons: readonly Lesson[] = [
         keys: ["f", "g", "c", "h", "l", "´"],
       },
     },
-    requiredWpm: 16,
-    requiredAccuracy: 86,
+    requiredWpm: 10,
+    requiredAccuracy: 80,
     exercises: [
       {
         id: "L5-E1",
@@ -311,8 +315,8 @@ export const lessons: readonly Lesson[] = [
     layoutOverrides: {
       "us-dvorak-intl": { keys: [";", "q", "j", "k", "x"] },
     },
-    requiredWpm: 18,
-    requiredAccuracy: 88,
+    requiredWpm: 11,
+    requiredAccuracy: 82,
     exercises: [
       {
         id: "L6-E1",
@@ -349,8 +353,8 @@ export const lessons: readonly Lesson[] = [
       "Completa la fila inferior con b, m, w, v, z. Con esto tienes " +
       "acceso a todas las letras del alfabeto español.",
     keys: ["b", "m", "w", "v", "z"],
-    requiredWpm: 20,
-    requiredAccuracy: 88,
+    requiredWpm: 12,
+    requiredAccuracy: 84,
     exercises: [
       {
         id: "L7-E1",
@@ -387,8 +391,8 @@ export const lessons: readonly Lesson[] = [
       "Practica las combinaciones con Shift para mayúsculas y signos de " +
       "puntuación. Aprende a usar puntos, comas, punto y coma, y dos puntos.",
     keys: ["Shift", ":", ";", "¿", "?", "¡", "!"],
-    requiredWpm: 22,
-    requiredAccuracy: 90,
+    requiredWpm: 13,
+    requiredAccuracy: 85,
     exercises: [
       {
         id: "L8-E1",
@@ -433,8 +437,8 @@ export const lessons: readonly Lesson[] = [
           "los signos ¿ y ¡, que en esta distribución se escriben con AltGr u Option.",
       },
     },
-    requiredWpm: 24,
-    requiredAccuracy: 92,
+    requiredWpm: 14,
+    requiredAccuracy: 86,
     exercises: [
       {
         id: "L9-E1",
@@ -470,8 +474,8 @@ export const lessons: readonly Lesson[] = [
       "Pon a prueba todo lo aprendido con párrafos completos en español. " +
       "Intenta mantener un ritmo constante sin sacrificar precisión.",
     keys: [],
-    requiredWpm: 28,
-    requiredAccuracy: 95,
+    requiredWpm: 15,
+    requiredAccuracy: 88,
     exercises: [
       {
         id: "L10-E1",
