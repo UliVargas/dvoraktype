@@ -1,8 +1,11 @@
+@import "tailwindcss";
+
 /* ========================================
    Fuentes — Inter + JetBrains Mono (OFL, ver assets/fonts)
    Servidas desde el propio sitio: un @import a Google Fonts encadenaba
    tres descargas antes del primer pintado. Solo el subconjunto latino,
-   que cubre el español (ñ, acentos, ¿ ¡, « »).
+   que cubre el español (ñ, acentos, ¿ ¡, « »). root.tsx precarga estos
+   mismos archivos: si cambias uno, cambia los dos.
    ======================================== */
 @font-face {
   font-family: "Inter";
@@ -19,8 +22,6 @@
   font-display: swap;
   src: url("./assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
 }
-
-@import "tailwindcss";
 
 /* ========================================
    Tema Base (Light & Dark)

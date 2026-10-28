@@ -66,6 +66,7 @@ export const Keycap = component$<KeycapProps>((props) => {
         isPressed ? "translate-y-0.5 shadow-brutal-pressed" : "",
         isStructural && !isPressed ? "text-surface-dark/50" : "",
 
+        // White, not text-primary-foreground: that token is dark for the primary blue
         isCorrect
           ? "bg-state-correct animate-key-press text-white"
           : isError

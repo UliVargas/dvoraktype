@@ -17,7 +17,7 @@ export default component$(() => {
             href={`${import.meta.env.BASE_URL}manifest.json`}
           />
         )}
-        {/* Fetched with the HTML instead of after the stylesheet */}
+        {/* Fetched with the HTML instead of after the stylesheet; same files as @font-face in global.css */}
         <link rel="preload" href={interUrl} as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href={monoUrl} as="font" type="font/woff2" crossOrigin="anonymous" />
         <script
