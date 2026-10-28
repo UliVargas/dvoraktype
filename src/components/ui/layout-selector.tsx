@@ -11,6 +11,30 @@ import {
 } from "../../data/layout-registry";
 import type { LayoutVariant } from "../../data/types";
 
+/**
+ * Index of the menu item that should receive focus for a navigation key, or
+ * undefined for keys the menu doesn't handle. `current` is -1 when no item has
+ * focus: ArrowDown then goes to the first item and ArrowUp to the last.
+ */
+export function nextMenuIndex(
+  key: string,
+  current: number,
+  length: number,
+): number | undefined {
+  switch (key) {
+    case "Home":
+      return 0;
+    case "End":
+      return length - 1;
+    case "ArrowDown":
+      return (current + 1) % length;
+    case "ArrowUp":
+      return current < 0 ? length - 1 : (current - 1 + length) % length;
+    default:
+      return undefined;
+  }
+}
+
 interface LayoutSelectorProps {
   current: LayoutVariant;
   onSelect$: QRL<(variant: LayoutVariant) => void>;
@@ -77,19 +101,15 @@ export const LayoutSelector = component$<LayoutSelectorProps>(
                 triggerRef.value?.focus();
                 return;
               }
-              if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Home" && key !== "End") return;
               const list = [
                 ...menu.querySelectorAll<HTMLElement>('[role="menuitemradio"]'),
               ];
-              const index = list.indexOf(
-                menu.ownerDocument.activeElement as HTMLElement,
+              const next = nextMenuIndex(
+                key,
+                list.indexOf(menu.ownerDocument.activeElement as HTMLElement),
+                list.length,
               );
-              const next =
-                key === "Home" ? 0
-                : key === "End" ? list.length - 1
-                : key === "ArrowDown" ? (index + 1) % list.length
-                : (index - 1 + list.length) % list.length;
-              list[next]?.focus();
+              if (next !== undefined) list[next]?.focus();
             }}
           >
             {LAYOUT_VARIANT_IDS.map((variant) => (

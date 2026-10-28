@@ -3,7 +3,7 @@ import { createDOM } from "@builder.io/qwik/testing";
 import { describe, expect, it } from "vitest";
 import { canonicalUrl } from "../router-head/canonical";
 import type { LayoutVariant, TypingStats } from "../../data/types";
-import { LayoutSelector } from "./layout-selector";
+import { LayoutSelector, nextMenuIndex } from "./layout-selector";
 import { ResultsDialog } from "./results-dialog";
 import { TypingArea } from "./typing-area";
 
@@ -23,6 +23,28 @@ const SelectorHarness = component$(() => {
       <output id="current">{current.value}</output>
     </div>
   );
+});
+
+// createDOM doesn't implement focus (activeElement stays undefined), so the
+// roving focus is tested through its index calculation; the focus moves
+// themselves and the dialog's Tab trap are covered by real-browser checks.
+describe("nextMenuIndex", () => {
+  it.each([
+    ["ArrowDown", 0, 1],
+    ["ArrowDown", 2, 0],
+    ["ArrowUp", 0, 2],
+    ["ArrowUp", 2, 1],
+    ["Home", 1, 0],
+    ["End", 0, 2],
+    ["ArrowDown", -1, 0],
+    ["ArrowUp", -1, 2],
+  ] as const)("%s from %i goes to %i of 3", (key, current, expected) => {
+    expect(nextMenuIndex(key, current, 3)).toBe(expected);
+  });
+
+  it("ignores other keys", () => {
+    expect(nextMenuIndex("a", 1, 3)).toBeUndefined();
+  });
 });
 
 describe("LayoutSelector (menu button pattern)", () => {
@@ -58,6 +80,19 @@ describe("LayoutSelector (menu button pattern)", () => {
     expect(trigger.parentElement?.getAttribute("tabindex")).toBe("-1");
     const items = [...screen.querySelectorAll('[role="menuitemradio"]')];
     expect(items.every((i) => i.hasAttribute("preventdefault:mousedown"))).toBe(true);
+  });
+
+  it("stays open when focus moves inside it and closes when focus leaves", async () => {
+    const { trigger, screen, userEvent } = await setup();
+    await userEvent(trigger, "click");
+    const container = trigger.parentElement as HTMLElement;
+    const item = screen.querySelector('[role="menuitemradio"]') as HTMLElement;
+
+    await userEvent(container, "focusout", { relatedTarget: item });
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+
+    await userEvent(container, "focusout", { relatedTarget: null });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
   it("closes on Escape without changing the layout", async () => {
