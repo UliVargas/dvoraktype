@@ -14,11 +14,23 @@ Branch: `chore/tests-and-ci` · Delivery: ask-on-risk · Test runner: Vitest (to
 ## Tasks
 
 - [x] T1 (S1) `2150655`: add Vitest with one smoke test. Route: inline.
-- [ ] T2 (S2) (partial: the server-side pass computation is covered by `src/server/progress-rules.test.ts`): add the unit tests, in parallel with the features that introduce the code under test. Route: inline.
-- [ ] T3 (S3) (partial: `src/server/progress.service.test.ts` runs against a real Postgres when `TEST_DATABASE_URL` is set; no CI service yet): add the DB integration tests and the Postgres service in CI. Route: inline.
-- [ ] T4 (S4, S5): add `.github/workflows/ci.yml`. Route: inline. Risk: item 5 (CI), so it needs an independent verifier.
+- [x] T2 (S2): unit tests exist for the typing metrics (`src/hooks/typing-session.test.ts`), the server-side pass computation (`src/server/progress-rules.test.ts`) and per-layout key resolution (`src/data/layout-registry.test.ts`). Route: inline.
+- [x] T3 (S3) `b94eb13`: `src/server/progress.service.test.ts` runs against the CI Postgres service, and fails in CI if `TEST_DATABASE_URL` is missing. Route: inline.
+- [x] T4 (S4, S5) `b94eb13`: `.github/workflows/ci.yml`. Route: inline. Risk: item 5 (CI), so it needs an independent verifier.
 
 ## Log
 
 - **L1** (2026-10-28, user): "Haz un analisis de las mejoras que puede tener este proyecto [...] Para eso aplcica una auditoría." Follow-up: "Dale, crea los .md de las cosas a corregir [...]"
 - **L2** (2026-10-28): component tests are now possible. `vitest.config.ts` loads `qwikVite()`, and `.test.tsx` files can render components with `createDOM` from `@builder.io/qwik/testing` (first one: `src/components/ui/keyboard.test.tsx`, `c0439ca`).
+- **L3** (2026-10-28, user): "sigue con el #7"
+- **L4** (2026-10-28): decisions.
+  - Actions are pinned to their current majors (checkout v7, setup-node v7, pnpm/action-setup v6, setup-buildx v4, build-push v7), all on the `node24` runtime, with the latest tags checked via the GitHub API.
+  - `packageManager: "pnpm@12.10.1"` pins pnpm for CI and for Corepack in the Docker build. pnpm 12 also records it in the lockfile; the first replay failed `--frozen-lockfile` until the lockfile was updated, which is exactly the class of drift CI should catch.
+  - The docker job boots the image against Postgres and requests pages, instead of only building it, because the original `.dockerignore` bug only surfaced at runtime. It also asserts the image runs the Node version in `.node-version`.
+  - The DB suite fails in CI without `TEST_DATABASE_URL` instead of skipping silently.
+- **L5** (2026-10-28): evidence.
+  - YAML parses (js-yaml). actionlint could not run because downloading and executing it was denied by the permission system.
+  - Clean-archive replay of `check` with `CI=true` and Postgres: install, lint, typecheck, test (114 passed, 1 skipped = the guard) and build all exit 0.
+  - Replay of `docker`: the image boots, `/` and `/sugerencias/` return 200, and node is v24.22.1, matching `.node-version`.
+  - Mutation: adding `drizzle` back to `.dockerignore` fails the image build.
+  - Not verified yet: a real GitHub Actions run. It will happen on the first push to `main`.
