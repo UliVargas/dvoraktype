@@ -9,8 +9,15 @@ export const connectionString =
   process.env.DATABASE_URL ||
   "postgres://admin:password@localhost:5432/dvorak_db";
 
-const queryClient = postgres(connectionString);
+const queryClient = postgres(connectionString, {
+  max: 10, // connections in the pool
+  idle_timeout: 20, // seconds before an idle connection is closed
+  max_lifetime: 60 * 30, // seconds before a connection is recycled
+});
 export const db = drizzle(queryClient, { schema });
+
+/** Round trip to the database, for health checks. */
+export const pingDb = () => queryClient`select 1`;
 
 /** Closes the connection pool (used by tests and graceful shutdown). */
 export const closeDb = () => queryClient.end();

@@ -18,9 +18,13 @@ import render from "./entry.ssr";
 import express from "express";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { connectionString } from "./db";
+import compression from "compression";
+import { closeDb, connectionString, pingDb } from "./db";
 import { runMigrations } from "./db/migrate";
+import { createHealthHandler } from "./server/health";
 import { clientIp, resolveOrigin } from "./server/request-rules";
+import { retryWithBackoff } from "./server/retry";
+import { createShutdown } from "./server/shutdown";
 
 const headerValue = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
@@ -40,8 +44,18 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
   throw new Error("DATABASE_URL is required in production");
 }
 
-// Bring the database schema up to date before accepting traffic
-await runMigrations(connectionString, migrationsDir);
+// Bring the database schema up to date before accepting traffic. The
+// database may still be booting (e.g. during a deploy), so connection
+// failures are retried for about a minute before giving up.
+await retryWithBackoff(() => runMigrations(connectionString, migrationsDir), {
+  attempts: 7,
+  baseMs: 1000,
+  maxMs: 15_000,
+  onRetry: (error, attempt, delayMs) =>
+    console.warn(
+      `Database not reachable (${(error as { code?: string }).code}), retry ${attempt} in ${delayMs} ms`,
+    ),
+});
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
@@ -80,8 +94,11 @@ process.on("uncaughtExceptionMonitor", (error, origin) => {
   console.error("Unhandled exception outside request", { origin, error });
 });
 
+// Liveness and readiness probe for the platform: checks the database too
+app.get("/health", createHealthHandler(pingDb));
+
 // Enable gzip compression
-// app.use(compression());
+app.use(compression());
 
 // Static asset handlers
 // https://expressjs.com/en/starter/static-files.html
@@ -99,7 +116,18 @@ app.use(router);
 app.use(notFound);
 
 // Start the express server
-app.listen(PORT, () => {
-   
+const server = app.listen(PORT, () => {
   console.log(`Server started: http://localhost:${PORT}/`);
 });
+
+// Deploys stop containers with SIGTERM: finish in-flight requests and close
+// the database pool instead of being killed mid-request
+const shutdown = createShutdown({
+  server,
+  closeDb,
+  timeoutMs: 10_000,
+  exit: (code) => process.exit(code),
+  log: (message) => console.log(message),
+});
+process.once("SIGTERM", () => void shutdown("SIGTERM"));
+process.once("SIGINT", () => void shutdown("SIGINT"));

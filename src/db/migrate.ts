@@ -8,6 +8,15 @@ import postgres from "postgres";
 // Arbitrary constant shared by every instance, so only one runs migrations at a time.
 const MIGRATION_LOCK_ID = 727_001;
 
+// Tables created by the initial migration (0000); a baseline needs all of them
+const INITIAL_TABLES = [
+  "users",
+  "lesson_progress",
+  "exercise_progress",
+  "free_practice_stats",
+  "user_settings",
+];
+
 interface Journal {
   entries: { idx: number; when: number; tag: string }[];
 }
@@ -23,10 +32,13 @@ interface Journal {
 export async function runMigrations(
   connectionString: string,
   migrationsFolder: string,
+  { lockTimeoutMs = 60_000 }: { lockTimeoutMs?: number } = {},
 ) {
   // A single dedicated connection: advisory locks are session-scoped.
   const client = postgres(connectionString, { max: 1, onnotice: () => {} });
   try {
+    // Don't wait forever behind an instance that is stuck holding the lock
+    await client.unsafe(`set lock_timeout = ${Math.trunc(lockTimeoutMs)}`);
     await client`select pg_advisory_lock(${MIGRATION_LOCK_ID})`;
     await baselineIfNeeded(client, migrationsFolder);
     await migrate(drizzle(client), { migrationsFolder });
@@ -53,6 +65,19 @@ async function baselineIfNeeded(
       select count(*)::int as count from drizzle.__drizzle_migrations
     `;
     if (count > 0) return;
+  }
+
+  // Baselining marks 0000 as applied, so every table it creates must exist:
+  // otherwise the missing ones would never be created.
+  const present = await client<{ name: string }[]>`
+    select table_name as name from information_schema.tables
+    where table_schema = 'public' and table_name in ${client(INITIAL_TABLES)}
+  `;
+  const missing = INITIAL_TABLES.filter((t) => !present.some((p) => p.name === t));
+  if (missing.length > 0) {
+    throw new Error(
+      `Refusing to baseline: the database has some initial tables but is missing initial tables: ${missing.join(", ")}`,
+    );
   }
 
   const journal: Journal = JSON.parse(
