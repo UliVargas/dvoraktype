@@ -35,3 +35,12 @@ Branch: `fix/accessibility` · Delivery: ask-on-risk · Test runner: Vitest plus
   - RED: the new modules did not exist. GREEN: `a11y.test.tsx` 10/10, and the full suite is 124 passed (with `TEST_DATABASE_URL`). tsc, eslint and build are clean.
   - SSR HTML on the built server: `<html lang="es">`, `<body>`, canonical and og:url `http://…/practica/` without the query string, the menu button collapsed, and the status region present.
   - Real focus and keyboard behavior cannot be proved with createDOM. Risk: item 6. A real-Chromium verifier (keyboard flows plus axe-core, baseline vs candidate) was launched.
+- **L6** (2026-10-28): the first browser verifier was cut off by a network error (ENOTFOUND) before reporting. It was resumed on the final candidate.
+- **L7** (2026-10-28): native review (lens: reliability, user consent `granted`, lineage `review-069d80b3a7d5a94d`) returned `correction_required` with a CRITICAL inferential finding, R3-focusout-click-race. In Safari and macOS Firefox a click does not focus buttons, so focus fell to `<body>`, focusout closed the menu before the click fired, and mouse selection broke. This was a regression against the baseline's focusable container plus `setTimeout`.
+  - Bounded correction `3277509`: the container has `tabIndex={-1}` again and the items have `preventdefault:mousedown`.
+  - The provider's targeted validation then approved it, and it was acknowledged.
+  - Informational advisories: the keyboard paths are only proved in a real browser; a repeated error was silent; the target text was hidden from AT.
+- **L8** (2026-10-28): fixed in `bb5cbb5`, with RED observed first.
+  - The hidden input is `aria-describedby` an sr-only "Texto a escribir: …".
+  - The status message adds "Errores: N." so a repeated error is announced again.
+  - Checks: 13/13 a11y tests and 117 unit tests pass; tsc, eslint and build are clean.
