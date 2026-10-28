@@ -39,3 +39,12 @@ Acceptance: a fresh Postgres plus `docker build` and `docker run` ends with ever
   `pnpm db:migrate` also succeeded twice on a fresh database.
 - **L6** (2026-10-28): pre-existing issue, out of scope and moved to ops-and-cleanup. `CMD ["pnpm","run","serve"]` makes Corepack download pnpm 12.x at every container start and log `ERR_PNPM_IGNORED_BUILDS` (`pnpm.onlyBuiltDependencies` is no longer read). The server still starts, but startup is slow and depends on the network. Fix: `CMD ["node","server/entry.express"]`.
 - **L7** (2026-10-28): Risk: items 1 and 5. RDD assess returned high and review is due. An independent verifier was launched.
+- **L8** (2026-10-28): independent verifier verdict: PASS for S1–S4 with no blockers. The acceptance check is now proven: on a fresh database, `POST /sugerencias` returned 200 and the row was stored. Advisories, all non-blocking:
+  - The baseline only checks `public.users`, so a partially pushed database would be marked as 0000 without its missing tables.
+  - Vite constant-folds the `NODE_ENV` guard, so the bundled check is unconditional. This is harmless.
+  - Startup now hard-depends on the database, and the advisory lock wait has no timeout.
+- **L9** (2026-10-28): native review (lenses: risk, resilience), user consent `granted`. Result: approved and acknowledged, lineage `review-387b7b2eb182df8a`. Informational findings:
+  - R1-001 (suggestion): the local DB fallback relies on `NODE_ENV`. This is pre-existing.
+  - R4-startup-db-hard-dependency (warning): consider retry with backoff on boot.
+  - R4-unbounded-advisory-lock-wait (suggestion): consider `lock_timeout`.
+  These are follow-ups for ops-and-cleanup.

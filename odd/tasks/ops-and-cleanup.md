@@ -21,6 +21,7 @@ Branch: `chore/ops-and-cleanup` · Delivery: ask-on-risk · Test runner: Vitest
   - `timestamp` columns use `withTimezone`.
 - **S6**: The `postgres()` pool sets `max`, `idle_timeout` and `max_lifetime` explicitly (`src/db/index.ts:12`).
 - **S8**: Containers start node directly (`CMD ["node", "server/entry.express"]`) instead of `pnpm run serve`, which downloads pnpm through Corepack at every start and logs `ERR_PNPM_IGNORED_BUILDS` (observed 2026-10-28, see deploy-migrations L6).
+- **S9**: Startup tolerates a briefly unreachable database (retry with backoff before giving up), and the migration advisory lock wait is bounded (`lock_timeout`). It should also fail loudly when the baseline finds only some of the 0000 tables. Source: deploy-migrations L8–L9.
 - **S7**: `compose.yml` includes an `app` service, so the production image can be tested end to end locally.
 
 ## Tasks
