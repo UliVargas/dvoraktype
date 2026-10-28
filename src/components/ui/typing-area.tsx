@@ -1,5 +1,6 @@
 import {
   component$,
+  useId,
   useVisibleTask$,
   type PropFunction,
   type Signal,
@@ -17,6 +18,8 @@ interface TypingAreaProps {
 
 export const TypingArea = component$<TypingAreaProps>((props) => {
   const engine = useTypingEngine(props);
+  const id = useId();
+  const textId = `${id}-text`;
 
   // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(({ track }) => {
@@ -33,7 +36,8 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
   const announcement = state.isFinished
     ? "Ejercicio completado."
     : state.charStates[state.currentIndex] === "error"
-      ? `Error en el carácter ${state.currentIndex + 1} de ${state.targetChars.length}: se esperaba «${state.targetChars[state.currentIndex]}».`
+      ? // The error count makes a repeated mistake produce a new announcement
+        `Error en el carácter ${state.currentIndex + 1} de ${state.targetChars.length}: se esperaba «${state.targetChars[state.currentIndex]}». Errores: ${state.errorChars}.`
       : "";
 
   return (
@@ -53,11 +57,17 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
         autoCorrect="off"
         spellcheck={false}
         aria-label="Área de escritura"
+        aria-describedby={textId}
         onKeyDown$={engine.handleKeyDown$}
         onCompositionStart$={engine.handleCompositionStart$}
         onCompositionEnd$={engine.handleCompositionEnd$}
         onInput$={engine.handleInput$}
       />
+
+      {/* The visual characters are aria-hidden; this is what screen readers read */}
+      <p id={textId} class="sr-only">
+        Texto a escribir: {engine.state.targetChars.join("")}
+      </p>
 
       <p role="status" aria-live="polite" class="sr-only">
         {announcement}

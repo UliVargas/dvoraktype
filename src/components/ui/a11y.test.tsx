@@ -150,11 +150,26 @@ describe("TypingArea accessibility", () => {
     expect(first?.className).toContain("underline");
   });
 
+  it("exposes the text to type to screen readers", async () => {
+    const { screen } = await setup();
+    const label = screen.querySelector("input")?.getAttribute("aria-describedby");
+    expect(screen.querySelector(`[id="${label}"]`)?.textContent).toBe("Texto a escribir: ab");
+  });
+
+  it("announces a repeated error again by counting errors", async () => {
+    const { type, live } = await setup();
+    await type("x");
+    const first = live();
+    await type("y");
+    expect(live()).not.toBe(first);
+    expect(live()).toContain("Errores: 2");
+  });
+
   it("announces errors and completion politely", async () => {
     const { screen, type, live } = await setup();
     expect(screen.querySelector('[role="status"]')?.getAttribute("aria-live")).toBe("polite");
     await type("x");
-    expect(live()).toBe("Error en el carácter 1 de 2: se esperaba «a».");
+    expect(live()).toBe("Error en el carácter 1 de 2: se esperaba «a». Errores: 1.");
     await type("ab");
     expect(live()).toBe("Ejercicio completado.");
   });
