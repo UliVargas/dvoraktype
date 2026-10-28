@@ -12,6 +12,7 @@ import { getSessionId } from "../../server/session";
 import { saveErrorOf } from "../../components/ui/save-result";
 import { freePracticeResultSchema } from "../../server/progress-rules";
 import { useLayoutVariant } from "../../context/layout-context";
+import { pageHead } from "../../components/router-head/seo";
 
 export const useSaveFreePractice = routeAction$(
   async (data, requestEvent) => {
@@ -75,7 +76,7 @@ export default component$(() => {
           Volver a Lecciones
         </Link>
         <div class="text-right">
-          <h2 class="text-2xl font-black">Práctica Libre</h2>
+          <h1 class="text-2xl font-black">Práctica Libre</h1>
         </div>
       </div>
 
@@ -140,22 +141,7 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = {
-  title: "Práctica Libre — DvorakType",
-  meta: [
-    {
-      name: "description",
-      content:
-        "Practica mecanografía Dvorak en español de forma libre y continua. Mejora tu WPM y precisión con textos reales.",
-    },
-    {
-      property: "og:title",
-      content: "Práctica Libre de Dvorak en Español",
-    },
-    {
-      property: "og:description",
-      content:
-        "Escribe sin interrupciones y mide tu velocidad (WPM) y precisión en tiempo real.",
-    },
-  ],
-};
+export const head: DocumentHead = pageHead(
+  "Práctica libre de Dvorak | DvorakType",
+  "Practica mecanografía Dvorak en español de forma libre y continua. Mejora tu WPM y precisión con textos reales.",
+);

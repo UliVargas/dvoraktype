@@ -29,6 +29,7 @@ import { Keyboard } from "../../../components/ui/keyboard";
 import { ResultsDialog } from "../../../components/ui/results-dialog";
 import { saveErrorOf } from "../../../components/ui/save-result";
 import { useLayoutVariant } from "../../../context/layout-context";
+import { pageHead } from "../../../components/router-head/seo";
 
 export const useLessonState = routeLoader$(async (requestEvent) => {
   const sessionId = getSessionId(requestEvent.cookie);
@@ -43,14 +44,17 @@ export const useLessonState = routeLoader$(async (requestEvent) => {
     true,
     "Checking the lesson lock",
   );
+  // A locked lesson still renders (title, theory, how to unlock it) so the
+  // page can be indexed and shared; only practising and saving need the unlock
   if (!unlocked) {
-    throw requestEvent.redirect(302, "/");
+    return { locked: true, nextExerciseIndex: 0, completedExercises: [] as string[], isComplete: false };
   }
-  return await withFallback(
+  const state = await withFallback(
     () => progressService.getLessonState(sessionId, lessonId),
     { nextExerciseIndex: 0, completedExercises: [] as string[], isComplete: false },
     "Loading the lesson state",
   );
+  return { locked: false, ...state };
 });
 
 export const useLessonData = routeLoader$((requestEvent) => {
@@ -202,6 +206,9 @@ export default component$(() => {
     resetKey.value = Date.now().toString();
   });
 
+  const previousLesson =
+    lessons[lessons.findIndex((l) => l.id === lessonData.value.id) - 1];
+
   const passedCurrent = currentStats.value
     ? currentStats.value.wpm >= lesson.value.requiredWpm &&
       currentStats.value.accuracy >= lesson.value.requiredAccuracy
@@ -218,11 +225,13 @@ export default component$(() => {
           Volver a Lecciones
         </Link>
         <div class="text-right">
-          <h2 class="text-2xl font-black">{lesson.value.title}</h2>
-          <p class="text-sm font-medium opacity-70">
-            Ejercicio {currentExerciseIndex.value + 1} de{" "}
-            {lesson.value.exercises.length}
-          </p>
+          <h1 class="text-2xl font-black">{lesson.value.title}</h1>
+          {!lessonState.value.locked && (
+            <p class="text-sm font-medium opacity-70">
+              Ejercicio {currentExerciseIndex.value + 1} de{" "}
+              {lesson.value.exercises.length}
+            </p>
+          )}
         </div>
       </div>
 
@@ -243,69 +252,75 @@ export default component$(() => {
         </span>
       </div>
 
-      <TypingArea
-        targetText={currentExercise.value.content}
-        onComplete$={handleComplete}
-        resetKey={resetKey.value}
-        currentIndexSignal={currentTypingIndex}
-      />
-
-      {showResults.value && currentStats.value && (
-        <ResultsDialog
-          passed={passedCurrent}
-          stats={currentStats.value}
-          nextLabel={
-            currentExerciseIndex.value < lesson.value.exercises.length - 1
-              ? "Siguiente"
-              : "Completar"
-          }
-          saveError={saveError.value}
-          onRetry$={handleRetry}
-          onNext$={handleNext}
-        />
-      )}
-
-      <div
-        class={`mt-8 transition-opacity duration-300 ${showResults.value ? "opacity-30" : "opacity-100"}`}
-      >
-        <div class="flex items-center justify-between mb-2 px-2">
-          <div class="text-sm font-bold text-surface-dark/60 uppercase tracking-widest flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-state-success animate-pulse"></span>
-            {getLayoutDefinition(layoutVariant.value).layout.name}
-          </div>
+      {lessonState.value.locked ? (
+        <div class="brutal-card bg-surface-card p-6 space-y-4">
+          <p class="font-bold">Esta lección está bloqueada.</p>
+          <p class="text-surface-dark/80">
+            Completa la lección anterior para desbloquearla.
+          </p>
+          {previousLesson && (
+            <Link
+              href={`/leccion/${previousLesson.id}/`}
+              class="inline-block font-bold text-primary underline"
+            >
+              Ir a «{previousLesson.title}»
+            </Link>
+          )}
         </div>
-        <div class="brutal-card bg-surface p-4 sm:p-6 overflow-x-auto custom-scrollbar flex justify-center">
-          <div class="min-w-162.5">
-            <Keyboard
-              layout={getLayoutDefinition(layoutVariant.value).layout}
-              targetChar={
-                currentExercise.value.content[currentTypingIndex.value]
+      ) : (
+        <>
+          <TypingArea
+            targetText={currentExercise.value.content}
+            onComplete$={handleComplete}
+            resetKey={resetKey.value}
+            currentIndexSignal={currentTypingIndex}
+          />
+
+          {showResults.value && currentStats.value && (
+            <ResultsDialog
+              passed={passedCurrent}
+              stats={currentStats.value}
+              nextLabel={
+                currentExerciseIndex.value < lesson.value.exercises.length - 1
+                  ? "Siguiente"
+                  : "Completar"
               }
+              saveError={saveError.value}
+              onRetry$={handleRetry}
+              onNext$={handleNext}
             />
+          )}
+
+          <div
+            class={`mt-8 transition-opacity duration-300 ${showResults.value ? "opacity-30" : "opacity-100"}`}
+          >
+            <div class="flex items-center justify-between mb-2 px-2">
+              <div class="text-sm font-bold text-surface-dark/60 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-state-success animate-pulse"></span>
+                {getLayoutDefinition(layoutVariant.value).layout.name}
+              </div>
+            </div>
+            <div class="brutal-card bg-surface p-4 sm:p-6 overflow-x-auto custom-scrollbar flex justify-center">
+              <div class="min-w-162.5">
+                <Keyboard
+                  layout={getLayoutDefinition(layoutVariant.value).layout}
+                  targetChar={
+                    currentExercise.value.content[currentTypingIndex.value]
+                  }
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 });
 
 export const head: DocumentHead = ({ resolveValue }) => {
   const lesson = resolveValue(useLessonData);
-  return {
-    title: `Lección: ${lesson.title} — DvorakType`,
-    meta: [
-      {
-        name: "description",
-        content: lesson.description,
-      },
-      {
-        property: "og:title",
-        content: `Mecanografía Dvorak - ${lesson.title}`,
-      },
-      {
-        property: "og:description",
-        content: lesson.description,
-      },
-    ],
-  };
+  return pageHead(
+    `Lección ${lesson.id.replace("leccion-", "")}: ${lesson.title} | DvorakType`,
+    lesson.description,
+  );
 };

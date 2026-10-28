@@ -28,9 +28,9 @@ export const Header = component$(() => {
             <LogoIcon class="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 class="text-xl font-extrabold tracking-tight text-surface-dark leading-none">
+            <p class="text-xl font-extrabold tracking-tight text-surface-dark leading-none">
               Dvorak<span class="text-primary">Type</span>
-            </h1>
+            </p>
             <p class="text-xs text-surface-dark/60 font-medium">
               Domina el Teclado Dvorak
             </p>

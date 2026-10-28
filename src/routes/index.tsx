@@ -9,6 +9,12 @@ import { ProgressBar } from "../components/ui/progress-bar";
 import { Keyboard } from "../components/ui/keyboard";
 import { LAYOUT_VARIANT_IDS, getLayoutDefinition } from "../data/layout-registry";
 import { useLayoutVariant } from "../context/layout-context";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  SITE_NAME,
+  pageHead,
+} from "../components/router-head/seo";
 
 export const useLessonsProgress = routeLoader$(async (requestEvent) => {
   const sessionId = ensureRequestSessionId(requestEvent);
@@ -49,9 +55,9 @@ export default component$(() => {
   return (
     <div class="space-y-10 animate-fade-in">
       <div class="brutal-card bg-surface p-6 sm:p-8 flex flex-col items-center relative overflow-hidden">
-        <h2 class="text-3xl md:text-4xl font-black text-surface-dark mb-4 text-center tracking-tight z-10">
+        <h1 class="text-3xl md:text-4xl font-black text-surface-dark mb-4 text-center tracking-tight z-10">
           Bienvenido a Dvorak<span class="text-primary">Type</span>
-        </h2>
+        </h1>
         <p class="text-sm md:text-base text-surface-dark/80 mb-6 max-w-3xl text-center font-medium z-10">
           Domina el teclado más ergonómico del mundo. Selecciona tu distribución
           ({layoutNames}) en la parte superior para que coincida
@@ -70,10 +76,10 @@ export default component$(() => {
 
       <div id="learning-path" class="scroll-mt-10">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
-          <h3 class="text-2xl font-bold flex items-center gap-3">
+          <h2 class="text-2xl font-bold flex items-center gap-3">
             <span class="w-3 h-8 bg-primary inline-block brutal-border"></span>
             Ruta de Aprendizaje
-          </h3>
+          </h2>
 
           <div class="w-full md:w-1/2 lg:w-1/3">
             <ProgressBar
@@ -123,22 +129,23 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = {
-  title: "Aprende Dvorak - Lecciones",
-  meta: [
+export const head: DocumentHead = ({ url }) => ({
+  ...pageHead(DEFAULT_TITLE, DEFAULT_DESCRIPTION),
+  scripts: [
     {
-      name: "description",
-      content:
-        "Elige una lección y comienza tu camino para dominar el teclado Dvorak. Curso progresivo desde las teclas base hasta dominar todos los dedos.",
-    },
-    {
-      property: "og:title",
-      content: "Curso de Mecanografía Dvorak en Español",
-    },
-    {
-      property: "og:description",
-      content:
-        "Aprende Dvorak con lecciones progresivas. Mejora tu velocidad y precisión.",
+      key: "ld-json",
+      props: { type: "application/ld+json" },
+      script: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        name: SITE_NAME,
+        url: `${url.origin}/`,
+        description: DEFAULT_DESCRIPTION,
+        inLanguage: "es",
+        applicationCategory: "EducationalApplication",
+        operatingSystem: "Web",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      }).replace(/</g, "\\u003c"),
     },
   ],
-};
+});

@@ -8,6 +8,7 @@ import { ensureRequestSessionId } from "../../server/session";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { LuMessageSquare, LuSend } from "@qwikest/icons/lucide";
+import { pageHead } from "../../components/router-head/seo";
 
 export const useSubmitFeedback = routeAction$(
   async (data, requestEvent) => {
@@ -151,13 +152,7 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = {
-  title: "Sugerencias | DvorakType",
-  meta: [
-    {
-      name: "description",
-      content:
-        "Envía tus sugerencias, reporta bugs y ayúdanos a mejorar DvorakType. Tu feedback es anónimo y muy valioso.",
-    },
-  ],
-};
+export const head: DocumentHead = pageHead(
+  "Sugerencias | DvorakType",
+  "Envía tus sugerencias, reporta bugs y ayúdanos a mejorar DvorakType. Tu feedback es anónimo y muy valioso.",
+);

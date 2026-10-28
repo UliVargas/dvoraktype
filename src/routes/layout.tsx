@@ -21,6 +21,7 @@ import {
 } from "../context/layout-context";
 import { Header } from "../components/ui/header";
 import { Footer } from "../components/ui/footer";
+import { siteHead } from "../components/router-head/seo";
 
 export const useLayoutVariantLoader = routeLoader$(async (requestEvent) => {
   const sessionId = ensureRequestSessionId(requestEvent);
@@ -92,35 +93,4 @@ export default component$(() => {
   );
 });
 
-export const head: DocumentHead = {
-  title: "DvorakType — Domina el Teclado Dvorak en Español",
-  meta: [
-    {
-      name: "description",
-      content:
-        "DvorakType es la mejor herramienta gratuita para aprender y dominar la distribución de teclado Dvorak en español. Mejora tu velocidad y precisión con lecciones interactivas.",
-    },
-    {
-      name: "keywords",
-      content:
-        "teclado dvorak, mecanografía dvorak, aprender dvorak español, typing test, dvorak xkb, velocidad de escritura, dvorak intl",
-    },
-    {
-      name: "author",
-      content: "Ulises Vargas",
-    },
-    {
-      property: "og:title",
-      content: "DvorakType — Domina el Teclado Dvorak en Español",
-    },
-    {
-      property: "og:description",
-      content:
-        "Aprende a escribir más rápido y con menos esfuerzo usando Dvorak adaptado al español.",
-    },
-    {
-      property: "og:type",
-      content: "website",
-    },
-  ],
-};
+export const head: DocumentHead = ({ head, url }) => siteHead(head, url.origin);
