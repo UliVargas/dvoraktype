@@ -119,6 +119,29 @@ describe.skipIf(!testDatabaseUrl)("progressService (Postgres)", () => {
     expect(await service.getAllLessonProgress(id)).toEqual({});
   });
 
+  it("reports an explicit lesson state: next exercise, or complete", async () => {
+    const id = newSession();
+    expect(await service.getLessonState(id, lesson.id)).toEqual({
+      nextExerciseIndex: 0,
+      completedExercises: [],
+      isComplete: false,
+    });
+
+    await service.saveExerciseResult(id, lesson.id, lesson.exercises[0].id, passing);
+    const partial = await service.getLessonState(id, lesson.id);
+    expect(partial.nextExerciseIndex).toBe(1);
+    expect(partial.isComplete).toBe(false);
+
+    for (const exercise of lesson.exercises.slice(1)) {
+      await service.saveExerciseResult(id, lesson.id, exercise.id, passing);
+    }
+    const done = await service.getLessonState(id, lesson.id);
+    expect(done.isComplete).toBe(true);
+    // A completed lesson reopens on its last exercise, as before
+    expect(done.nextExerciseIndex).toBe(lesson.exercises.length - 1);
+    expect([...done.completedExercises].sort()).toEqual(lesson.exercises.map((e) => e.id).sort());
+  });
+
   it("reports whether a lesson is unlocked for the session", async () => {
     const id = newSession();
     expect(await service.isLessonUnlocked(id, lessons[0].id)).toBe(true);

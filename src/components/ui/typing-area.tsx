@@ -52,7 +52,7 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
       />
 
       <div class="wrap-break-word select-none">
-        {props.targetText.split("").map((char, index) => {
+        {engine.state.targetChars.map((char, index) => {
           const charState = engine.state.charStates[index];
           const isCurrent = index === engine.state.currentIndex;
 

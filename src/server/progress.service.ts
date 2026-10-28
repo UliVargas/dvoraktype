@@ -38,31 +38,24 @@ export const progressService = {
 
   async getLessonState(sessionId: string, lessonId: string) {
     await this.ensureUser(sessionId);
-    // Find highest completed exercise
+    // Exercises of this lesson the user has already passed
     const exercises = await db.select().from(exerciseProgress)
       .where(and(eq(exerciseProgress.userId, sessionId), eq(exerciseProgress.lessonId, lessonId)))
       .orderBy(desc(exerciseProgress.updatedAt));
     
     const lesson = lessons.find(l => l.id === lessonId);
-    if (!lesson) return { nextExerciseIndex: 0 };
+    if (!lesson) return { nextExerciseIndex: 0, completedExercises: [], isComplete: false };
 
     const completedSet = new Set(exercises.filter(e => e.passed).map(e => e.exerciseId));
-    
-    // Find the first exercise that is NOT completed
-    let nextExerciseIndex = 0;
-    for (let i = 0; i < lesson.exercises.length; i++) {
-      if (!completedSet.has(lesson.exercises[i].id)) {
-        nextExerciseIndex = i;
-        break;
-      }
-    }
+    const firstPending = lesson.exercises.findIndex(e => !completedSet.has(e.id));
+    const isComplete = firstPending === -1;
 
-    // If all completed, return the last exercise index to show completion
-    if (nextExerciseIndex === 0 && completedSet.size === lesson.exercises.length) {
-      nextExerciseIndex = lesson.exercises.length - 1;
-    }
-
-    return { nextExerciseIndex, completedExercises: Array.from(completedSet) };
+    return {
+      // A completed lesson reopens on its last exercise
+      nextExerciseIndex: isComplete ? lesson.exercises.length - 1 : firstPending,
+      completedExercises: Array.from(completedSet),
+      isComplete,
+    };
   },
 
   async isLessonUnlocked(sessionId: string, lessonId: string) {
