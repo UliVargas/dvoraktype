@@ -76,6 +76,17 @@ describe("lessons per layout", () => {
     }
   });
 
+  it("only overrides exercises that exist, so a mistyped id can't be silently ignored", () => {
+    const unknown = lessons.flatMap((lesson) =>
+      Object.values(lesson.layoutOverrides ?? {}).flatMap((override) =>
+        Object.keys(override?.exercises ?? {}).filter(
+          (id) => !lesson.exercises.some((e) => e.id === id),
+        ),
+      ),
+    );
+    expect(unknown).toEqual([]);
+  });
+
   it("leaves the Spanish layout's lessons unchanged", () => {
     for (const base of lessons) {
       expect(lessonForLayout(base, "es-dvorak-xkb")).toEqual(base);
