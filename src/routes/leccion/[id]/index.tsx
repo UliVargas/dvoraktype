@@ -17,6 +17,7 @@ import { LuArrowLeft } from "@qwikest/icons/lucide";
 import { lessons } from "../../../data/lessons";
 import { progressService } from "../../../server/progress.service";
 import { getSessionId } from "../../../server/session";
+import { withFallback } from "../../../server/fallback";
 import {
   exerciseBelongsToLesson,
   exerciseResultSchema,
@@ -35,10 +36,21 @@ export const useLessonState = routeLoader$(async (requestEvent) => {
   if (!sessionId) {
     throw requestEvent.redirect(302, "/");
   }
-  if (!(await progressService.isLessonUnlocked(sessionId, lessonId))) {
+  // With the database down nothing can be saved anyway (the action reports it),
+  // so the page degrades to an unlocked lesson starting at its first exercise
+  const unlocked = await withFallback(
+    progressService.isLessonUnlocked(sessionId, lessonId),
+    true,
+    "Checking the lesson lock",
+  );
+  if (!unlocked) {
     throw requestEvent.redirect(302, "/");
   }
-  return await progressService.getLessonState(sessionId, lessonId);
+  return await withFallback(
+    progressService.getLessonState(sessionId, lessonId),
+    { nextExerciseIndex: 0, completedExercises: [] as string[], isComplete: false },
+    "Loading the lesson state",
+  );
 });
 
 export const useLessonData = routeLoader$((requestEvent) => {
@@ -55,22 +67,28 @@ export const useSaveExercise = routeAction$(
     const sessionId = getSessionId(requestEvent.cookie);
     if (!sessionId) return { success: false };
 
-    if (!(await progressService.isLessonUnlocked(sessionId, data.lessonId))) {
-      return requestEvent.fail(403, { message: "Lesson is locked" });
-    }
-
     if (!exerciseBelongsToLesson(data.lessonId, data.exerciseId)) {
       return requestEvent.fail(400, { message: "Unknown lesson or exercise" });
     }
 
-    // Database failures propagate as 500s so they are logged, not mistaken for bad input
-    await progressService.saveExerciseResult(
-      sessionId,
-      data.lessonId,
-      data.exerciseId,
-      { wpm: data.wpm, accuracy: data.accuracy },
-    );
-    return { success: true };
+    // Database failures are logged and returned as a JSON 503: a thrown error
+    // becomes an HTML 500 that Qwik's client handles by navigating away, so
+    // the page could never tell the user the result wasn't saved.
+    try {
+      if (!(await progressService.isLessonUnlocked(sessionId, data.lessonId))) {
+        return requestEvent.fail(403, { message: "Lesson is locked" });
+      }
+      await progressService.saveExerciseResult(
+        sessionId,
+        data.lessonId,
+        data.exerciseId,
+        { wpm: data.wpm, accuracy: data.accuracy },
+      );
+      return { success: true };
+    } catch (error) {
+      console.error("Saving an exercise result failed", error);
+      return requestEvent.fail(503, { message: "No se pudo guardar el resultado. Inténtalo de nuevo en unos minutos." });
+    }
   },
   zod$(exerciseResultSchema),
 );

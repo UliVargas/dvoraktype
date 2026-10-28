@@ -3,6 +3,7 @@ import { routeLoader$, useNavigate, type DocumentHead } from "@builder.io/qwik-c
 import { lessons } from "../data/lessons";
 import { progressService } from "../server/progress.service";
 import { ensureRequestSessionId } from "../server/session";
+import { withFallback } from "../server/fallback";
 import { LessonCard } from "../components/ui/lesson-card";
 import { ProgressBar } from "../components/ui/progress-bar";
 import { Keyboard } from "../components/ui/keyboard";
@@ -12,7 +13,11 @@ import { useLayoutVariant } from "../context/layout-context";
 export const useLessonsProgress = routeLoader$(async (requestEvent) => {
   const sessionId = ensureRequestSessionId(requestEvent);
 
-  const allProgress = await progressService.getAllLessonProgress(sessionId);
+  const allProgress = await withFallback(
+    progressService.getAllLessonProgress(sessionId),
+    {},
+    "Loading lesson progress",
+  );
 
   let completedCount = 0;
   for (const lesson of lessons) {

@@ -18,9 +18,14 @@ export const useSaveFreePractice = routeAction$(
     const sessionId = getSessionId(requestEvent.cookie);
     if (!sessionId) return { success: false };
 
-    await progressService.saveFreePracticeResult(sessionId, "es", data);
-
-    return { success: true };
+    // Logged and returned as a JSON 503 so the page can tell the user
+    try {
+      await progressService.saveFreePracticeResult(sessionId, "es", data);
+      return { success: true };
+    } catch (error) {
+      console.error("Saving a free practice result failed", error);
+      return requestEvent.fail(503, { message: "No se pudo guardar el resultado. Inténtalo de nuevo en unos minutos." });
+    }
   },
   zod$(freePracticeResultSchema),
 );

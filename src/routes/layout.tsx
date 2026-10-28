@@ -12,6 +12,7 @@ import { type LayoutVariant } from "../data/types";
 import { DEFAULT_LAYOUT, isLayoutVariant } from "../data/layout-registry";
 import { progressService } from "../server/progress.service";
 import { ensureRequestSessionId } from "../server/session";
+import { withFallback } from "../server/fallback";
 
 import {
   LayoutVariantContext,
@@ -24,7 +25,11 @@ import { Footer } from "../components/ui/footer";
 export const useLayoutVariantLoader = routeLoader$(async (requestEvent) => {
   const sessionId = ensureRequestSessionId(requestEvent);
 
-  const settings = await progressService.getUserSettings(sessionId);
+  const settings = await withFallback(
+    progressService.getUserSettings(sessionId),
+    { layoutVariant: DEFAULT_LAYOUT },
+    "Loading layout settings",
+  );
   // Stored values from removed variants fall back to the default layout
   return isLayoutVariant(settings.layoutVariant)
     ? settings.layoutVariant
