@@ -16,7 +16,7 @@ Branch: `chore/tests-and-ci` · Delivery: ask-on-risk · Test runner: Vitest (to
 - [x] T1 (S1) `2150655`: add Vitest with one smoke test. Route: inline.
 - [x] T2 (S2): unit tests exist for the typing metrics (`src/hooks/typing-session.test.ts`), the server-side pass computation (`src/server/progress-rules.test.ts`) and per-layout key resolution (`src/data/layout-registry.test.ts`). Route: inline.
 - [x] T3 (S3) `b94eb13`: `src/server/progress.service.test.ts` runs against the CI Postgres service, and fails in CI if `TEST_DATABASE_URL` is missing. Route: inline.
-- [ ] T4 (S4, S5) `b94eb13`, `13edb60`: `.github/workflows/ci.yml` is implemented and replayed locally. It stays open until a real GitHub Actions run passes. Route: inline. Risk: item 5 (CI), so it needs an independent verifier.
+- [x] T4 (S4, S5) `b94eb13`, `13edb60`: `.github/workflows/ci.yml` is implemented and replayed locally. It stays open until a real GitHub Actions run passes. Route: inline. Risk: item 5 (CI), so it needs an independent verifier.
 
 ## Log
 
@@ -53,3 +53,4 @@ Branch: `chore/tests-and-ci` · Delivery: ask-on-risk · Test runner: Vitest (to
   - R2-boot-readiness-coupling: a comment points to `app.listen` in `src/entry.express.tsx`.
   The YAML parses.
 - **L9** (2026-10-28, user): "haz merge y push cuando termine el verificador". T4 closes once the first GitHub Actions run on `main` passes.
+- **L10** (2026-10-28): the first real GitHub Actions run on `main` (`b7cea5b`, run 40716387858) succeeded. Both jobs passed: "Lint, types, tests and build" and "Docker image boots and serves". T4 is closed.
