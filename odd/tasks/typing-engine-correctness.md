@@ -34,3 +34,8 @@ Branch: `fix/typing-engine-correctness` · Delivery: ask-on-risk · Test runner:
   - RED for the core module (missing) and for `isComplete`.
   - GREEN: 111/111 with `TEST_DATABASE_URL`; tsc, eslint and build are clean.
   - Risk: item 6, because real OS IME and dead-key behavior is beyond synthetic events. A real-Chromium verifier (CDP IME and insertText, baseline vs candidate) was launched. Manual checks on macOS, Windows and Linux are still the user's to do.
+- **L5** (2026-10-28): native review (lens: reliability, user consent `granted`, lineage `review-0494645ea27857c4`): approved and acknowledged. Both findings are fixed in `3e39307`, with RED observed first in `typing-area.test.tsx`:
+  - R3-post-finish-stats: input after completion is ignored, so the live stats equal the reported ones. Before the fix, the live elapsedTime moved after finishing.
+  - R3-stale-target-chars: a new `targetText` restarts the session even with the same `resetKey`.
+  - The first fix attempt silently did not apply, because a failing `grep -c` short-circuited the `&&` chain. It was re-run and confirmed by GREEN.
+  - Checks: 103 unit tests pass (DB tests skipped, unaffected); tsc and eslint are clean.
