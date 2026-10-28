@@ -16,6 +16,17 @@ export const useSubmitFeedback = routeAction$(
     // Pretend success so bots don't learn to skip the hidden field
     if (isHoneypotFilled(data)) return { success: true };
 
+    // TEMPORARY (2026-10-28): find out which X-Forwarded-For entry Railway's
+    // edge leaves for the client, to confirm TRUSTED_PROXY_HOPS. Remove once known.
+    console.log(
+      "[ip-diagnostic]",
+      JSON.stringify({
+        xForwardedFor: requestEvent.request.headers.get("x-forwarded-for"),
+        xRealIp: requestEvent.request.headers.get("x-real-ip"),
+        chosenIp: requestEvent.clientConn.ip,
+      }),
+    );
+
     const limitKeys = [`ip:${requestEvent.clientConn.ip}`, `session:${sessionId}`];
     if (!feedbackLimiter.takeAll(limitKeys)) {
       return requestEvent.fail(429, {
@@ -26,10 +37,11 @@ export const useSubmitFeedback = routeAction$(
     try {
       await progressService.submitFeedback(sessionId, data.type, data.message);
       return { success: true };
-    } catch {
+    } catch (error) {
+      console.error("Saving feedback failed", error);
       // A failed save shouldn't count against the visitor's quota
       feedbackLimiter.release(limitKeys);
-      return requestEvent.fail(500, {
+      return requestEvent.fail(503, {
         message: "Hubo un error al enviar tu sugerencia.",
       });
     }
