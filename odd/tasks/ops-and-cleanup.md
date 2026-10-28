@@ -57,3 +57,20 @@ Branch: `chore/ops-and-cleanup` · Delivery: ask-on-risk · Test runner: Vitest
   - Built server: retries while the DB is down, then starts. `/health` returns 200, or 503 with the DB paused. gzip is on, and SIGTERM exits 0.
   - Slim image: all pages and `/health` return 200, Docker reports "healthy", and `docker stop` exits 0 (baseline exited 137).
   - Risk: items 1 (migration on production data) and 5 (deploy). An independent verifier was launched against a production-like push-created DB.
+- **L6** (2026-10-28): native review of the first candidate (4 lenses, user consent `granted`, lineage `review-305037be8c4aa226`): approved and acknowledged. Fixed in `a0c1bc5`:
+  - lock_timeout was session-wide; it is now set with a parameterized `set_config`.
+  - The retry window claim was inaccurate; `connect_timeout` is now 10 s.
+  - Global compression delayed SSR streaming, so only `/build` and `/assets` are compressed (verified: pages without gzip, assets with gzip).
+  - Limits are shared in `src/data/limits.ts`, the lock id is exported for its test, and fake timers are restored in `finally`.
+  Noted as decisions: CASCADE semantics (requested by S5; there is no delete path today) and the brief exclusive locks while rewriting the small tables.
+- **L7** (2026-10-28): independent verifier, on a production-like DB (push from main, data written through the main app).
+  - Passing: S1 (no runtime devDependency), S2 (in-flight request completes, forced exit path), S6, S7 (compose with an override), and S9 (retry, fast fail on a wrong password, ENOTFOUND exits after about 46 s, two instances migrate once).
+  - S5 kept rows and epochs and matched FK names, but had a BLOCKER: NOT VALID checks still apply to UPDATEs, so a legacy out-of-range `best_wpm` made every save of that lesson return 500. Reproduced through the lesson action.
+  - The second native review (lineage `review-0023a1c2e49924f0`, approved) raised the same point (R3-not-valid-check-blocks-legacy-updates), plus an unbounded table-lock wait after resetting to 0, a stale Dockerfile comment, and shutdown timeout equal to the docker grace period.
+- **L8** (2026-10-28): one correction batch in `585ed66`.
+  - 0002 clamps legacy rows into range before adding fully validated CHECKs.
+  - The DDL lock_timeout is 5 s, and 55P03 plus `cause`-wrapped errors are retried.
+  - Shutdown calls `closeIdleConnections`, with a forced exit at 8 s.
+  - The Dockerfile comment is fixed.
+  - RED: 4 tests failed. GREEN: 25/25 targeted and 162 overall; tsc, eslint and drizzle-kit (no drift) are clean.
+  - Production state could not be checked: running `select count(*) … not between` on production needs explicit remote access, so the fix works whether or not such rows exist. One recheck limited to the blocker was requested.
