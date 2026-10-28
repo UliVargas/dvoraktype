@@ -55,6 +55,11 @@ describe("getKeyCodesForChar", () => {
     );
   });
 
+  it("degrades to the default layout for an unregistered variant", () => {
+    const unknown = "qwerty" as LayoutVariant;
+    expect(getKeyCodesForChar(unknown, "a")).toEqual(getKeyCodesForChar(DEFAULT_LAYOUT, "a"));
+  });
+
   it("returns nothing for empty input or unknown characters", () => {
     expect(getKeyCodesForChar("es-dvorak-xkb", "")).toEqual([]);
     expect(getKeyCodesForChar("es-dvorak-xkb", "€")).toEqual([]);

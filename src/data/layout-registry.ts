@@ -109,7 +109,7 @@ export function getKeyCodesForChar(
   char: string,
 ): string[] {
   if (!char) return [];
-  const codes = charToCode(variant);
+  const codes = charToCode(getLayoutDefinition(variant).layout.variant);
   const sequence = getLayoutDefinition(variant).deadKeyCompositions[char];
   if (sequence) {
     return sequence

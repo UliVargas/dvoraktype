@@ -156,6 +156,30 @@
   "¿": [
    "Equal"
   ],
+  "Á": [
+   "Quote",
+   "KeyA"
+  ],
+  "É": [
+   "Quote",
+   "KeyD"
+  ],
+  "Í": [
+   "Quote",
+   "KeyG"
+  ],
+  "Ó": [
+   "Quote",
+   "KeyS"
+  ],
+  "Ú": [
+   "Quote",
+   "KeyF"
+  ],
+  "Ü": [
+   "Quote",
+   "KeyF"
+  ],
   "á": [
    "Quote",
    "KeyA"
@@ -176,6 +200,10 @@
    "KeyS"
   ],
   "ú": [
+   "Quote",
+   "KeyF"
+  ],
+  "ü": [
    "Quote",
    "KeyF"
   ]
@@ -333,6 +361,30 @@
   ],
   "¡": [],
   "¿": [],
+  "Á": [
+   "KeyQ",
+   "KeyA"
+  ],
+  "É": [
+   "KeyQ",
+   "KeyD"
+  ],
+  "Í": [
+   "KeyQ",
+   "KeyG"
+  ],
+  "Ó": [
+   "KeyQ",
+   "KeyS"
+  ],
+  "Ú": [
+   "KeyQ",
+   "KeyF"
+  ],
+  "Ü": [
+   "KeyQ",
+   "KeyF"
+  ],
   "á": [
    "KeyQ",
    "KeyA"
@@ -351,6 +403,10 @@
    "KeyS"
   ],
   "ú": [
+   "KeyQ",
+   "KeyF"
+  ],
+  "ü": [
    "KeyQ",
    "KeyF"
   ]
