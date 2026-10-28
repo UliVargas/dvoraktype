@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import legacyKeyCodes from "./__fixtures__/legacy-key-codes.json";
 import { lessons } from "./lessons";
+import { quotesEs } from "./quotes";
+import { commonWordsEn, commonWordsEs } from "./words";
 import {
   DEFAULT_LAYOUT,
   LAYOUT_VARIANT_IDS,
@@ -122,21 +124,30 @@ describe("Latin American Dvorak (XKB latam dvorak)", () => {
   });
 });
 
-describe("every lesson character is typeable", () => {
-  const lessonChars = [
-    ...new Set(lessons.flatMap((l) => l.exercises.flatMap((e) => [...e.content]))),
+describe("every practice character is typeable", () => {
+  // Everything the app asks people to type: lessons, free-practice quotes and word lists
+  const practiceChars = [
+    ...new Set(
+      [
+        ...lessons.flatMap((l) => l.exercises.map((e) => e.content)),
+        ...quotesEs.map((q) => q.text),
+        ...commonWordsEs,
+        ...commonWordsEn,
+      ].flatMap((text) => [...text]),
+    ),
   ];
 
   it("guides ñ on US International through the ~ dead key", () => {
-    const tilde = getKeyCodesForChar("us-dvorak-intl", "~");
-    expect(getKeyCodesForChar("us-dvorak-intl", "ñ")).toEqual([...tilde, ...getKeyCodesForChar("us-dvorak-intl", "n")]);
-    expect(getKeyCodesForChar("us-dvorak-intl", "Ñ")).toEqual([...tilde, ...getKeyCodesForChar("us-dvorak-intl", "N")]);
+    // ~ is Shift+` (Backquote) on US Dvorak, and n/N sit on the physical KeyL position
+    expect(getKeyCodesForChar("us-dvorak-intl", "~")).toEqual(["Backquote"]);
+    expect(getKeyCodesForChar("us-dvorak-intl", "ñ")).toEqual(["Backquote", "KeyL"]);
+    expect(getKeyCodesForChar("us-dvorak-intl", "Ñ")).toEqual(["Backquote", "KeyL"]);
   });
 
   for (const variant of LAYOUT_VARIANT_IDS) {
-    it(`highlights a key for every lesson character in ${variant}, except declared exceptions`, () => {
+    it(`highlights a key for every practice character in ${variant}, except declared exceptions`, () => {
       const unsupported = getLayoutDefinition(variant).unsupportedChars;
-      const missing = lessonChars.filter(
+      const missing = practiceChars.filter(
         (c) => getKeyCodesForChar(variant, c).length === 0 && !unsupported.includes(c),
       );
       expect(missing).toEqual([]);
