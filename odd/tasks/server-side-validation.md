@@ -57,3 +57,12 @@ Acceptance: a crafted POST with `passed=true`, `wpm=NaN` or an unknown `lessonId
   - The 1-hour cap on free-practice time.
   - `evaluateExercise.isLastExercise` is unused now that completion requires every exercise.
 - **L11** (2026-10-28): native review and the merge are on hold. The user prioritized the Node.js and dependency security update (`chore/security-updates`). This branch will be rebased onto it and re-checked before review.
+- **L12** (2026-10-28): the native review of the pre-rebase candidate (lens: reliability, user consent `granted`, lineage `review-9f8473457a136a3c`) was approved and acknowledged. Advisories:
+  - R3-001: a bare `catch` turned DB failures into 400s.
+  - R3-002 and R3-003: startup DB dependency and baseline scope, already tracked in ops-and-cleanup S9.
+  - R3-004: the elapsedTime cap and `z.coerce` of an empty string.
+  - R3-005: the DB tests are skipped without `TEST_DATABASE_URL`, tracked in tests-and-ci T3.
+- **L13** (2026-10-28): rebased onto `c5a7ddb` (security update). Vitest went to 5.0.5, and `zod@3.25.48` was restored as a direct dependency (it was lost in the package.json conflict resolution) and folded into the Vitest commit.
+  - R3-001 is fixed. The action checks `exerciseBelongsToLesson` before saving and no longer catches errors (RED was observed for the new rule tests).
+  - Checks: 33/33 tests with `TEST_DATABASE_URL`, and `tsc 6`, `eslint 10` and `pnpm build` are clean.
+  - HTTP: an unknown exercise returns 400 and a valid save returns 200. With the DB stopped the action returns 500 and the error is logged; before, it returned 400 with nothing logged.
