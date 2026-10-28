@@ -32,3 +32,7 @@ Branch: `refactor/layout-variant-registry` · Delivery: ask-on-risk · Test runn
   - RED: the registry module did not exist. GREEN: 79/79 with `TEST_DATABASE_URL`; tsc, eslint and build are clean. There are 0 variant string comparisons left in `.tsx` files.
   - Built server: `/`, the lesson page and `/practica` render the label matching the stored variant before and after `POST /api/layout`, and an unknown stored value renders the default.
   - Risk: none. No high-risk item applies, and the shared highlighting behavior is pinned by the snapshot.
+- **L6** (2026-10-28): native review (lens: reliability, user consent `granted`, lineage `review-c341a643d49f4ce1`): approved and acknowledged. Follow-ups applied:
+  - R3-snapshot-composition-gap: the snapshot now also covers `Á É Í Ó Ú ü Ü` (65 characters per variant), generated from the pre-refactor `keyboard.tsx` at `f5ff411`.
+  - R3-unknown-variant-throws: `getKeyCodesForChar` falls back to the default layout. RED was observed with a TypeError, then GREEN.
+  R3-loader-fallback-untested is noted only; the registry-level fallback is unit-tested.
