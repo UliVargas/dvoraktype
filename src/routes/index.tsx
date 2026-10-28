@@ -1,13 +1,13 @@
 import { component$ } from "@builder.io/qwik";
 import { routeLoader$, useNavigate, type DocumentHead } from "@builder.io/qwik-city";
-import { lessons } from "../data/lessons";
+import { lessons, lessonForLayout } from "../data/lessons";
 import { progressService } from "../server/progress.service";
 import { ensureRequestSessionId } from "../server/session";
 import { withFallback } from "../server/fallback";
 import { LessonCard } from "../components/ui/lesson-card";
 import { ProgressBar } from "../components/ui/progress-bar";
 import { Keyboard } from "../components/ui/keyboard";
-import { getLayoutDefinition } from "../data/layout-registry";
+import { LAYOUT_VARIANT_IDS, getLayoutDefinition } from "../data/layout-registry";
 import { useLayoutVariant } from "../context/layout-context";
 
 export const useLessonsProgress = routeLoader$(async (requestEvent) => {
@@ -43,6 +43,8 @@ export default component$(() => {
   );
 
   const currentLayout = getLayoutDefinition(layoutVariant.value).layout;
+  const menuLabels = LAYOUT_VARIANT_IDS.map((id) => getLayoutDefinition(id).menuLabel);
+  const layoutNames = `${menuLabels.slice(0, -1).join(", ")} o ${menuLabels.at(-1)}`;
 
   return (
     <div class="space-y-10 animate-fade-in">
@@ -52,7 +54,7 @@ export default component$(() => {
         </h2>
         <p class="text-sm md:text-base text-surface-dark/80 mb-6 max-w-3xl text-center font-medium z-10">
           Domina el teclado más ergonómico del mundo. Selecciona tu distribución
-          (ES Dvorak o US Dvorak Intl) en la parte superior para que coincida
+          ({layoutNames}) en la parte superior para que coincida
           físicamente con las teclas{" "}
           <strong class="text-primary">Enter y Shift</strong> de tu hardware.
         </p>
@@ -103,7 +105,7 @@ export default component$(() => {
             return (
               <LessonCard
                 key={lesson.id}
-                lesson={lesson}
+                lesson={lessonForLayout(lesson, layoutVariant.value)}
                 status={status}
                 bestWpm={p?.bestWpm}
                 bestAccuracy={p?.bestAccuracy}

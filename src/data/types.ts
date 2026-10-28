@@ -24,6 +24,14 @@ export interface Exercise {
 
 export type Language = "es" | "en";
 
+/** Replacements for a lesson on a layout whose keys sit elsewhere. */
+export interface LessonLayoutOverride {
+  readonly description?: string;
+  readonly keys?: readonly string[];
+  /** Exercise id → content to type on this layout instead. */
+  readonly exercises?: Readonly<Record<string, string>>;
+}
+
 export interface Lesson {
   readonly id: string;
   readonly language: Language;
@@ -33,6 +41,8 @@ export interface Lesson {
   readonly exercises: readonly Exercise[];
   readonly requiredWpm: number;
   readonly requiredAccuracy: number;
+  /** Texts written for es-dvorak-xkb, replaced per layout where they differ. */
+  readonly layoutOverrides?: Partial<Record<LayoutVariant, LessonLayoutOverride>>;
 }
 
 export interface TypingStats {

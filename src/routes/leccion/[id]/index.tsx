@@ -14,7 +14,7 @@ import {
   type DocumentHead,
 } from "@builder.io/qwik-city";
 import { LuArrowLeft } from "@qwikest/icons/lucide";
-import { lessons } from "../../../data/lessons";
+import { lessons, lessonForLayout } from "../../../data/lessons";
 import { progressService } from "../../../server/progress.service";
 import { getSessionId } from "../../../server/session";
 import { withFallback } from "../../../server/fallback";
@@ -96,9 +96,13 @@ export default component$(() => {
   const nav = useNavigate();
 
   const lessonData = useLessonData();
+  const layoutVariant = useLayoutVariant();
+  // Texts, keys and exercise contents for the selected layout
+  const lesson = useComputed$(() =>
+    lessonForLayout(lessonData.value, layoutVariant.value),
+  );
   const lessonState = useLessonState();
   const saveAction = useSaveExercise();
-  const layoutVariant = useLayoutVariant();
 
   const currentExerciseIndex = useSignal(lessonState.value.nextExerciseIndex);
   const currentStats = useSignal<TypingStats | null>(null);
@@ -121,11 +125,11 @@ export default component$(() => {
   });
 
   const currentExercise = useComputed$(() => {
-    return lessonData.value.exercises[currentExerciseIndex.value];
+    return lesson.value.exercises[currentExerciseIndex.value];
   });
 
   const handleComplete = $(async (stats: TypingStats) => {
-    const lesson = lessonData.value;
+    const current = lesson.value;
     if (!currentExercise.value) return;
 
     currentStats.value = stats;
@@ -133,8 +137,8 @@ export default component$(() => {
 
     // Local preview for confetti only; the server decides what is persisted
     const passedThisExercise =
-      stats.wpm >= lesson.requiredWpm &&
-      stats.accuracy >= lesson.requiredAccuracy;
+      stats.wpm >= current.requiredWpm &&
+      stats.accuracy >= current.requiredAccuracy;
 
     // ===================================================================
     // Confetti
@@ -158,7 +162,7 @@ export default component$(() => {
     saveError.value = undefined;
     const error = await saveErrorOf(
       saveAction.submit({
-        lessonId: lesson.id,
+        lessonId: current.id,
         exerciseId: currentExercise.value.id,
         wpm: stats.wpm,
         accuracy: stats.accuracy,
@@ -168,9 +172,9 @@ export default component$(() => {
   });
 
   const handleNext = $(() => {
-    const lesson = lessonData.value;
+    const current = lesson.value;
 
-    if (currentExerciseIndex.value < lesson.exercises.length - 1) {
+    if (currentExerciseIndex.value < current.exercises.length - 1) {
       currentExerciseIndex.value++;
       showResults.value = false;
       currentStats.value = null;
@@ -182,7 +186,7 @@ export default component$(() => {
       currentTypingIndex.value = 0;
       resetKey.value = Date.now().toString();
 
-      const nextLessonIndex = lessons.findIndex((l) => l.id === lesson.id) + 1;
+      const nextLessonIndex = lessons.findIndex((l) => l.id === current.id) + 1;
       if (nextLessonIndex < lessons.length) {
         nav(`/leccion/${lessons[nextLessonIndex].id}`);
       } else {
@@ -199,8 +203,8 @@ export default component$(() => {
   });
 
   const passedCurrent = currentStats.value
-    ? currentStats.value.wpm >= lessonData.value.requiredWpm &&
-      currentStats.value.accuracy >= lessonData.value.requiredAccuracy
+    ? currentStats.value.wpm >= lesson.value.requiredWpm &&
+      currentStats.value.accuracy >= lesson.value.requiredAccuracy
     : false;
 
   return (
@@ -214,28 +218,28 @@ export default component$(() => {
           Volver a Lecciones
         </Link>
         <div class="text-right">
-          <h2 class="text-2xl font-black">{lessonData.value.title}</h2>
+          <h2 class="text-2xl font-black">{lesson.value.title}</h2>
           <p class="text-sm font-medium opacity-70">
             Ejercicio {currentExerciseIndex.value + 1} de{" "}
-            {lessonData.value.exercises.length}
+            {lesson.value.exercises.length}
           </p>
         </div>
       </div>
 
       <div class="bg-surface-card border-2 border-border p-4 rounded-brutal-sm shadow-brutal-sm text-surface-dark/80 text-sm leading-relaxed mb-6">
         <p>
-          <strong>Teoría:</strong> {lessonData.value.description}
+          <strong>Teoría:</strong> {lesson.value.description}
         </p>
       </div>
 
       <div class="flex gap-4 mb-4 text-sm font-bold uppercase tracking-wider text-surface-dark/60">
         <span class="flex items-center gap-1">
           Meta WPM:{" "}
-          <span class="text-primary">{lessonData.value.requiredWpm}</span>
+          <span class="text-primary">{lesson.value.requiredWpm}</span>
         </span>
         <span class="flex items-center gap-1">
           Meta Precisión:{" "}
-          <span class="text-primary">{lessonData.value.requiredAccuracy}%</span>
+          <span class="text-primary">{lesson.value.requiredAccuracy}%</span>
         </span>
       </div>
 
@@ -251,7 +255,7 @@ export default component$(() => {
           passed={passedCurrent}
           stats={currentStats.value}
           nextLabel={
-            currentExerciseIndex.value < lessonData.value.exercises.length - 1
+            currentExerciseIndex.value < lesson.value.exercises.length - 1
               ? "Siguiente"
               : "Completar"
           }

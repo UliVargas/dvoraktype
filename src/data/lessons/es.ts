@@ -10,6 +10,15 @@
 //   Fila superior: . , ñ p y f g c h l ` +
 //   Fila guía:     a o e u i d r t n s ´ ç
 //   Fila inferior: - q j k x b m w v z
+//
+// Las otras distribuciones cambian algunas teclas de sitio; `layoutOverrides`
+// reescribe solo lo que difiere (lessonForLayout lo aplica):
+// - us-dvorak-intl: H en la fila guía y R en la superior; ' , . p y arriba a la
+//   izquierda; - en el meñique derecho de la fila guía y ; abajo a la izquierda;
+//   acentos con la tecla muerta ', ñ con ~ + n.
+// - latam-dvorak-xkb: letras iguales; { } en el meñique derecho de la fila guía
+//   y la tecla muerta ´ a la derecha de la L (no hay ç).
+// Un ejercicio solo usa teclas enseñadas en su lección o en las anteriores.
 // ============================================================================
 
 import type { Lesson } from "../types";
@@ -39,6 +48,19 @@ export const lessons: readonly Lesson[] = [
         content: "aoeui drtns aoeui drtns",
       },
     ],
+    layoutOverrides: {
+      "us-dvorak-intl": {
+        description:
+          "¡Bienvenido! El teclado Dvorak está diseñado para la eficiencia. " +
+          'A diferencia del QWERTY, tus dedos descansan en la "Fila Guía" (Home Row). ' +
+          "Ahí encontrarás todas las vocales en la mano izquierda (A O E U I) y las " +
+          'consonantes más usadas en la derecha (D H T N S). Arriba está la "Fila Superior" ' +
+          '(Top Row) y abajo la "Fila Inferior" (Bottom Row). ' +
+          "Este primer ejercicio te servirá para ubicar tus dedos en la Fila Guía.",
+        keys: ["a", "o", "e", "u", "i", "d", "h", "t", "n", "s"],
+        exercises: { "L0-E1": "aoeui dhtns aoeui dhtns" },
+      },
+    },
   },
 
   // =========================================================================
@@ -72,6 +94,16 @@ export const lessons: readonly Lesson[] = [
         content: "ir id red rut rui",
       },
     ],
+    layoutOverrides: {
+      "us-dvorak-intl": {
+        keys: ["e", "u", "i", "d", "h", "t"],
+        exercises: {
+          "L1-E1": "eui dht hiu eth dei tuh ute hid",
+          "L1-E2": "edhi tuhe dite uhid ehit huti",
+          "L1-E3": "he hi de te ti tu",
+        },
+      },
+    },
   },
 
   // =========================================================================
@@ -106,6 +138,11 @@ export const lessons: readonly Lesson[] = [
         content: "auto onda ese nota este seno tres ente",
       },
     ],
+    layoutOverrides: {
+      "us-dvorak-intl": {
+        exercises: { "L2-E3": "auto onda ese nota este seno hasta ente" },
+      },
+    },
   },
 
   // =========================================================================
@@ -137,7 +174,7 @@ export const lessons: readonly Lesson[] = [
       {
         id: "L3-E3",
         type: "sentences",
-        content: "este es uno de esos datos de la nota",
+        content: "este es uno de esos datos de su nota",
       },
       {
         id: "L3-E4",
@@ -145,6 +182,17 @@ export const lessons: readonly Lesson[] = [
         content: "esa renta es de tres euros en todo este rato",
       },
     ],
+    layoutOverrides: {
+      "us-dvorak-intl": {
+        keys: ["-"],
+        exercises: {
+          "L3-E1": "sino nada duda esta esos unido todo dato hasta tienda",
+          "L3-E2": "sentido distinto honesto antes tenis siesta dentista",
+          "L3-E4": "esa tienda tiene todo en este sitio",
+        },
+      },
+      "latam-dvorak-xkb": { keys: ["{", "}"] },
+    },
   },
 
   // =========================================================================
@@ -165,24 +213,34 @@ export const lessons: readonly Lesson[] = [
       {
         id: "L4-E1",
         type: "words",
-        content: "año piña pino tipo niño punto pintar",
+        content: "año piña pino tipo niño punto pinta",
       },
       {
         id: "L4-E2",
         type: "words",
-        content: "uña ñoño sueño dueño España otoño pequeño",
+        content: "uña ñoño sueño dueño paño otoño piñata",
       },
       {
         id: "L4-E3",
         type: "sentences",
-        content: "ese niño pinta un pino en otoño, yo opino que es un sueño.",
+        content: "ese niño pinta un pino en otoño, y yo sueño en su patio.",
       },
       {
         id: "L4-E4",
         type: "sentences",
-        content: "España es un punto de unión, y eso es importante.",
+        content: "ese paño de seda es tuyo, y eso es todo.",
       },
     ],
+    layoutOverrides: {
+      "us-dvorak-intl": {
+        description:
+          "Sube a la fila superior con la mano izquierda. Aprende apóstrofo, " +
+          "coma, punto, p e y. El apóstrofo es la tecla muerta de los acentos, y " +
+          "la ñ se escribe con la tecla muerta ~ (Shift + la tecla a la izquierda " +
+          "del 1) seguida de n.",
+        keys: ["'", ",", ".", "p", "y", "ñ"],
+      },
+    },
   },
 
   // =========================================================================
@@ -197,6 +255,21 @@ export const lessons: readonly Lesson[] = [
       "Completa la fila superior con la mano derecha: f, g, c, h, l. " +
       "Recuerda que en Dvorak español la H está en la fila superior.",
     keys: ["f", "g", "c", "h", "l"],
+    layoutOverrides: {
+      "us-dvorak-intl": {
+        description:
+          "Completa la fila superior con la mano derecha: f, g, c, r, l. " +
+          "En Dvorak US la R está en la fila superior y la H en la fila guía.",
+        keys: ["f", "g", "c", "r", "l"],
+      },
+      "latam-dvorak-xkb": {
+        description:
+          "Completa la fila superior con la mano derecha: f, g, c, h, l y la " +
+          "tecla muerta ´ de los acentos, a la derecha de la L. La H está en la " +
+          "fila superior.",
+        keys: ["f", "g", "c", "h", "l", "´"],
+      },
+    },
     requiredWpm: 16,
     requiredAccuracy: 86,
     exercises: [
@@ -235,6 +308,9 @@ export const lessons: readonly Lesson[] = [
       "Baja a la fila inferior con la mano izquierda. Las teclas q, j, k y x " +
       "son menos frecuentes pero esenciales para vocabulario completo.",
     keys: ["-", "q", "j", "k", "x"],
+    layoutOverrides: {
+      "us-dvorak-intl": { keys: [";", "q", "j", "k", "x"] },
+    },
     requiredWpm: 18,
     requiredAccuracy: 88,
     exercises: [
@@ -246,17 +322,17 @@ export const lessons: readonly Lesson[] = [
       {
         id: "L6-E2",
         type: "words",
-        content: "queja jaque exquisito ejemplo quejar junio",
+        content: "queja jaque exquisito expedito quejar junio",
       },
       {
         id: "L6-E3",
         type: "sentences",
-        content: "el jefe del equipo quiso un ejemplo justo y exacto.",
+        content: "el jefe del equipo quiso un trato justo y exacto.",
       },
       {
         id: "L6-E4",
         type: "sentences",
-        content: "la quejan no es justa, que el equipo explique el contexto.",
+        content: "la queja no es justa, que el equipo explique el contexto.",
       },
     ],
   },
@@ -349,6 +425,14 @@ export const lessons: readonly Lesson[] = [
       "Domina los acentos con la tecla muerta ´ seguida de la vocal. " +
       "Practica también la diéresis ü y los signos ¿ y ¡.",
     keys: ["á", "é", "í", "ó", "ú", "ü"],
+    layoutOverrides: {
+      "us-dvorak-intl": {
+        description:
+          "Domina los acentos con la tecla muerta ' (apóstrofo) seguida de la " +
+          'vocal. Practica también la diéresis ü (tecla muerta " seguida de u) y ' +
+          "los signos ¿ y ¡, que en esta distribución se escriben con AltGr u Option.",
+      },
+    },
     requiredWpm: 24,
     requiredAccuracy: 92,
     exercises: [
