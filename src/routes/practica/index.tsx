@@ -1,5 +1,5 @@
 import { component$, useSignal, $, useComputed$ } from "@builder.io/qwik";
-import { Link, routeAction$, type DocumentHead } from "@builder.io/qwik-city";
+import { Link, routeAction$, zod$, type DocumentHead } from "@builder.io/qwik-city";
 import { LuArrowLeft, LuQuote } from "@qwikest/icons/lucide";
 import { type TypingStats } from "../../data/types";
 import { TypingArea } from "../../components/ui/typing-area";
@@ -8,20 +8,20 @@ import { StatsBar } from "../../components/ui/stats-bar";
 import { esDvorakLayout, usDvorakIntlLayout } from "../../data/dvorak-layout";
 import { getRandomQuote, type Quote } from "../../data/quotes";
 import { progressService } from "../../server/progress.service";
+import { freePracticeResultSchema } from "../../server/progress-rules";
 import { useLayoutVariant } from "../../context/layout-context";
 
-export const useSaveFreePractice = routeAction$(async (data, requestEvent) => {
-  const sessionId = requestEvent.cookie.get("sessionId")?.value;
-  if (!sessionId) return { success: false };
+export const useSaveFreePractice = routeAction$(
+  async (data, requestEvent) => {
+    const sessionId = requestEvent.cookie.get("sessionId")?.value;
+    if (!sessionId) return { success: false };
 
-  await progressService.saveFreePracticeResult(sessionId, "es", {
-    wpm: Number(data.wpm),
-    accuracy: Number(data.accuracy),
-    elapsedTime: Number(data.elapsedTime),
-  });
+    await progressService.saveFreePracticeResult(sessionId, "es", data);
 
-  return { success: true };
-});
+    return { success: true };
+  },
+  zod$(freePracticeResultSchema),
+);
 
 export default component$(() => {
   const saveAction = useSaveFreePractice();
@@ -40,7 +40,6 @@ export default component$(() => {
 
   const handleComplete = $((stats: TypingStats) => {
     saveAction.submit({
-      language: "es",
       wpm: stats.wpm,
       accuracy: stats.accuracy,
       elapsedTime: stats.elapsedTime,

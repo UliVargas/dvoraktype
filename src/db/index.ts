@@ -11,3 +11,6 @@ export const connectionString =
 
 const queryClient = postgres(connectionString);
 export const db = drizzle(queryClient, { schema });
+
+/** Closes the connection pool (used by tests and graceful shutdown). */
+export const closeDb = () => queryClient.end();

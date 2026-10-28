@@ -10,6 +10,7 @@ import {
   Link,
   routeLoader$,
   routeAction$,
+  zod$,
   type DocumentHead,
 } from "@builder.io/qwik-city";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@qwikest/icons/lucide";
 import { lessons } from "../../../data/lessons";
 import { progressService } from "../../../server/progress.service";
+import { exerciseResultSchema } from "../../../server/progress-rules";
 import {
   esDvorakLayout,
   usDvorakIntlLayout,
@@ -38,6 +40,9 @@ export const useLessonState = routeLoader$(async (requestEvent) => {
   if (!sessionId) {
     throw requestEvent.redirect(302, "/");
   }
+  if (!(await progressService.isLessonUnlocked(sessionId, lessonId))) {
+    throw requestEvent.redirect(302, "/");
+  }
   return await progressService.getLessonState(sessionId, lessonId);
 });
 
@@ -50,20 +55,29 @@ export const useLessonData = routeLoader$((requestEvent) => {
   return lesson;
 });
 
-export const useSaveExercise = routeAction$(async (data, requestEvent) => {
-  const sessionId = requestEvent.cookie.get("sessionId")?.value;
-  if (!sessionId) return { success: false };
+export const useSaveExercise = routeAction$(
+  async (data, requestEvent) => {
+    const sessionId = requestEvent.cookie.get("sessionId")?.value;
+    if (!sessionId) return { success: false };
 
-  await progressService.saveExerciseResult(
-    sessionId,
-    data.lessonId as string,
-    data.exerciseId as string,
-    { wpm: Number(data.wpm), accuracy: Number(data.accuracy) } as any,
-    data.isLastExercise === "true",
-    data.passed === "true",
-  );
-  return { success: true };
-});
+    if (!(await progressService.isLessonUnlocked(sessionId, data.lessonId))) {
+      return requestEvent.fail(403, { message: "Lesson is locked" });
+    }
+
+    try {
+      await progressService.saveExerciseResult(
+        sessionId,
+        data.lessonId,
+        data.exerciseId,
+        { wpm: data.wpm, accuracy: data.accuracy },
+      );
+    } catch {
+      return requestEvent.fail(400, { message: "Unknown lesson or exercise" });
+    }
+    return { success: true };
+  },
+  zod$(exerciseResultSchema),
+);
 
 export default component$(() => {
   const nav = useNavigate();
@@ -97,8 +111,7 @@ export default component$(() => {
     currentStats.value = stats;
     showResults.value = true;
 
-    const isLastExercise =
-      currentExerciseIndex.value === lesson.exercises.length - 1;
+    // Local preview for confetti only; the server decides what is persisted
     const passedThisExercise =
       stats.wpm >= lesson.requiredWpm &&
       stats.accuracy >= lesson.requiredAccuracy;
@@ -126,8 +139,6 @@ export default component$(() => {
       exerciseId: currentExercise.value.id,
       wpm: stats.wpm,
       accuracy: stats.accuracy,
-      isLastExercise: isLastExercise ? "true" : "false",
-      passed: passedThisExercise ? "true" : "false",
     });
   });
 

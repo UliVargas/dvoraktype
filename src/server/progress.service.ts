@@ -1,8 +1,8 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { users, lessonProgress, exerciseProgress, freePracticeStats, userSettings, feedbacks } from '../db/schema';
 import { lessons } from '../data/lessons';
-import type { TypingStats } from '../data/types';
+import { evaluateExercise, isLessonUnlocked } from './progress-rules';
 
 export const progressService = {
   async submitFeedback(sessionId: string, type: string, message: string) {
@@ -64,58 +64,76 @@ export const progressService = {
     return { nextExerciseIndex, completedExercises: Array.from(completedSet) };
   },
 
+  async isLessonUnlocked(sessionId: string, lessonId: string) {
+    const completed = await db
+      .select({ lessonId: lessonProgress.lessonId })
+      .from(lessonProgress)
+      .where(and(eq(lessonProgress.userId, sessionId), eq(lessonProgress.completed, true)));
+    return isLessonUnlocked(lessonId, new Set(completed.map((p) => p.lessonId)));
+  },
+
+  // Whether the exercise passed and whether the lesson is complete are decided
+  // here from the lesson requirements, never taken from the client.
+  // Every write is a single upsert so concurrent saves can't lose updates.
   async saveExerciseResult(
-    sessionId: string, 
-    lessonId: string, 
-    exerciseId: string, 
-    stats: TypingStats, 
-    isLastExercise: boolean,
-    passed: boolean
+    sessionId: string,
+    lessonId: string,
+    exerciseId: string,
+    stats: { wpm: number; accuracy: number },
   ) {
+    const evaluation = evaluateExercise(lessonId, exerciseId, stats);
+    if (!evaluation) {
+      throw new Error(`Unknown exercise ${exerciseId} in lesson ${lessonId}`);
+    }
+    const lesson = lessons.find((l) => l.id === lessonId)!;
+
     await this.ensureUser(sessionId);
 
-    // Guardar progreso del ejercicio
+    // A passed exercise stays passed when retried with worse results
     await db.insert(exerciseProgress).values({
       userId: sessionId,
       lessonId,
       exerciseId,
-      passed,
+      passed: evaluation.passed,
       wpm: stats.wpm,
       accuracy: stats.accuracy,
     }).onConflictDoUpdate({
       target: [exerciseProgress.userId, exerciseProgress.lessonId, exerciseProgress.exerciseId],
       set: {
-        passed: passed, // Podríamos hacer que si ya estaba pasado, no se quite, pero onConflict no lo permite fácilmente sin raw sql. Haremos un select primero para estar seguros, o confiaremos en que solo se avanza si pasa.
+        passed: sql`${exerciseProgress.passed} OR excluded.passed`,
         wpm: stats.wpm,
         accuracy: stats.accuracy,
         updatedAt: new Date(),
       }
     });
 
-    // Actualizar progreso general de la lección
-    const lp = await db.select().from(lessonProgress)
-      .where(and(eq(lessonProgress.userId, sessionId), eq(lessonProgress.lessonId, lessonId)));
-    
-    const previous = lp[0];
-    const isNowCompleted = previous?.completed || (passed && isLastExercise);
-    const newBestWpm = Math.max(previous?.bestWpm || 0, stats.wpm);
-    const newBestAcc = Math.max(previous?.bestAccuracy || 0, stats.accuracy);
-    const newAttempts = (previous?.attempts || 0) + 1;
+    // Passed flags only ever go from false to true, so reading them after our
+    // own write can't undo a completion: `completed` is OR-ed below.
+    const passedExercises = await db
+      .select({ exerciseId: exerciseProgress.exerciseId })
+      .from(exerciseProgress)
+      .where(and(
+        eq(exerciseProgress.userId, sessionId),
+        eq(exerciseProgress.lessonId, lessonId),
+        eq(exerciseProgress.passed, true),
+      ));
+    const passedIds = new Set(passedExercises.map((e) => e.exerciseId));
+    const completed = lesson.exercises.every((e) => passedIds.has(e.id));
 
     await db.insert(lessonProgress).values({
       userId: sessionId,
       lessonId,
-      completed: isNowCompleted,
-      bestWpm: newBestWpm,
-      bestAccuracy: newBestAcc,
-      attempts: newAttempts,
+      completed,
+      bestWpm: stats.wpm,
+      bestAccuracy: stats.accuracy,
+      attempts: 1,
     }).onConflictDoUpdate({
       target: [lessonProgress.userId, lessonProgress.lessonId],
       set: {
-        completed: isNowCompleted,
-        bestWpm: newBestWpm,
-        bestAccuracy: newBestAcc,
-        attempts: newAttempts,
+        completed: sql`${lessonProgress.completed} OR excluded.completed`,
+        bestWpm: sql`GREATEST(${lessonProgress.bestWpm}, excluded.best_wpm)`,
+        bestAccuracy: sql`GREATEST(${lessonProgress.bestAccuracy}, excluded.best_accuracy)`,
+        attempts: sql`${lessonProgress.attempts} + 1`,
         updatedAt: new Date(),
       }
     });
