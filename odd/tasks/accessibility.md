@@ -44,3 +44,8 @@ Branch: `fix/accessibility` · Delivery: ask-on-risk · Test runner: Vitest plus
   - The hidden input is `aria-describedby` an sr-only "Texto a escribir: …".
   - The status message adds "Errores: N." so a repeated error is announced again.
   - Checks: 13/13 a11y tests and 117 unit tests pass; tsc, eslint and build are clean.
+- **L9** (2026-10-28): native review of the corrected candidate (lens: reliability, user consent `granted`, lineage `review-5bf241628b2eb9d5`): approved and acknowledged. Follow-ups in `e75afdd`:
+  - R3-002 bug: ArrowUp with no focused item went to the second-to-last item. Now `nextMenuIndex` is a pure, tested function.
+  - R3-004: a behavioral `focusout` test, with relatedTarget inside the menu keeping it open and null closing it.
+  - R3-001 and R3-003 (focus moves and the dialog Tab trap) cannot be tested in createDOM. A probe showed `focus()` leaves `activeElement` undefined in Qwik's test DOM, contrary to the review's assumption. They are left to the real-browser verifier.
+  - Checks: 23 a11y tests and 127 unit tests pass; tsc and eslint are clean.
