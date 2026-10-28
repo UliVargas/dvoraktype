@@ -21,3 +21,4 @@ Branch: `chore/tests-and-ci` · Delivery: ask-on-risk · Test runner: Vitest (to
 ## Log
 
 - **L1** (2026-10-28, user): "Haz un analisis de las mejoras que puede tener este proyecto [...] Para eso aplcica una auditoría." Follow-up: "Dale, crea los .md de las cosas a corregir [...]"
+- **L2** (2026-10-28): component tests are now possible. `vitest.config.ts` loads `qwikVite()`, and `.test.tsx` files can render components with `createDOM` from `@builder.io/qwik/testing` (first one: `src/components/ui/keyboard.test.tsx`, `c0439ca`).

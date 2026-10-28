@@ -45,3 +45,8 @@ Depends on: layout-variant-registry
   - Risk: none. A new variant value is additive, and the existing variants are pinned by the snapshot.
 - **L7** (2026-10-28): T4 (reply to the community comment) is pending and belongs to the user.
 - **L8** (2026-10-28): native review (lens: reliability, user consent `granted`, lineage `review-de8865cfe1de12a0`): approved and acknowledged. R3-001 (warning, informational): the keyboard hint for unsupported characters has no component-level test. This is the same gap as the "not verified end to end" note in L6, and it is a candidate for tests-and-ci or the accessibility follow-up.
+- **L9** (2026-10-28, user): "Corrijamos ese hueco antes de hacer push para que quede todo cubierto". R3-001 is closed in `c0439ca`.
+  - `vitest.config.ts` now loads the Qwik optimizer (`qwikVite()` only), so `component$` can be rendered with `createDOM` from `@builder.io/qwik/testing`.
+  - `src/components/ui/keyboard.test.tsx` checks two things. On US Intl, `¿`/`¡` show "«X» no tiene una tecla directa en Dvorak US Internacional…" and the region is not `sr-only`. On ES and LatAm (with `¿`/`¡`), on US with a supported character, and with no target, the region stays empty and `sr-only`.
+  - The test was written after the code, so it was mutation-checked instead of RED-first. Emptying US `unsupportedChars` makes 2 of 7 fail, and forcing `sr-only` makes 2 of 7 fail; both mutations were reverted.
+  - Full suite: 96/96 with `TEST_DATABASE_URL`; tsc, eslint and build are clean.
