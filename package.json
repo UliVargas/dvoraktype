@@ -6,6 +6,7 @@
   },
   "engines-annotation": "24.22.1 is the first 24.x release with the October 2026 security fixes (CVE-2026-111497 and others).",
   "private": true,
+  "packageManager": "pnpm@12.10.1",
   "type": "module",
   "scripts": {
     "build": "qwik build",

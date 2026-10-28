@@ -7,6 +7,11 @@ import { lessons } from "../data/lessons";
 //   TEST_DATABASE_URL=postgres://postgres:pw@127.0.0.1:55432/postgres pnpm test
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 
+// Locally the suite is skipped without a database; in CI that would hide it
+it.runIf(!!process.env.CI && !testDatabaseUrl)("requires TEST_DATABASE_URL in CI", () => {
+  throw new Error("TEST_DATABASE_URL must be set in CI so the database tests run");
+});
+
 describe.skipIf(!testDatabaseUrl)("progressService (Postgres)", () => {
   let service: typeof import("./progress.service").progressService;
   let close: () => Promise<void>;

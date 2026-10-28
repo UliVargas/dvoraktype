@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, types, tests and build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      # Integration tests in src/server/*.test.ts run against this database
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build.types
+      - run: pnpm test
+      - run: pnpm build
+
+  docker:
+    name: Docker image boots and serves
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: dvoraktype:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # Booting catches what a build alone can't, such as migrations missing
+      # from the image: the server applies them before it starts listening.
+      - name: Boot the image against Postgres
+        run: |
+          docker run -d --name app --network host \
+            -e DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres \
+            -e PORT=3000 \
+            dvoraktype:ci
+          for i in $(seq 1 30); do
+            if docker logs app 2>&1 | grep -q "Server started"; then break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' app)" != "true" ]; then break; fi
+            sleep 1
+          done
+          docker logs app
+          curl -fsS -o /dev/null -w "GET / -> %{http_code}\n" http://localhost:3000/
+          curl -fsS -o /dev/null -w "GET /sugerencias/ -> %{http_code}\n" http://localhost:3000/sugerencias/
+          # The image must run the Node version the repo pins
+          test "$(docker exec app node -v)" = "v$(cat .node-version)"
