@@ -11,7 +11,8 @@
 -- - `users` holds one row per cookie session, created on the first page view,
 --   crawlers included. "Active" sessions below are the ones with any learning
 --   activity (a lesson attempt or a free practice run); use those, not `users`,
---   as the base for every rate.
+--   as the base for every rate. Query 2 also counts exercise saves as activity
+--   to date it: an exercise save always writes its lesson row too.
 -- - A person who clears cookies or switches device counts as a new session.
 -- - Progress rows keep only their LAST write time (`updated_at`), so "last
 --   seen" is exact but intermediate visits are invisible. Return rates below
@@ -23,7 +24,7 @@
 -- 1. Overview -----------------------------------------------------------------
 -- Sessions, how many did anything, and what they did.
 WITH active AS (
-  SELECT user_id FROM lesson_progress
+  SELECT user_id FROM lesson_progress WHERE attempts > 0
   UNION
   SELECT user_id FROM free_practice_stats
 )
@@ -62,16 +63,18 @@ ORDER BY d.day;
 
 -- 3. Lesson funnel --------------------------------------------------------------
 -- For each lesson: sessions that tried it and that completed it, as a share of
--- all active sessions, plus how many of those who finished the previous lesson
--- went on to finish this one.
+-- all active sessions, plus the share of sessions that completed the previous
+-- lesson and also completed this one (same sessions, not two counts divided).
 WITH active AS (
-  SELECT user_id FROM lesson_progress
+  SELECT user_id FROM lesson_progress WHERE attempts > 0
   UNION
   SELECT user_id FROM free_practice_stats
 ),
 per_lesson AS (
   SELECT
     lesson_id,
+    -- leccion-NN follows leccion-(NN-1)
+    'leccion-' || lpad((substring(lesson_id FROM '\d+$')::int - 1)::text, 2, '0') AS previous_id,
     count(*) FILTER (WHERE attempts > 0) AS started,
     count(*) FILTER (WHERE completed)    AS completed,
     round(avg(attempts) FILTER (WHERE completed), 1) AS avg_attempts_to_complete
@@ -79,15 +82,18 @@ per_lesson AS (
   GROUP BY lesson_id
 )
 SELECT
-  lesson_id,
-  started,
-  completed,
-  round(100.0 * completed / nullif((SELECT count(*) FROM active), 0), 1) AS completed_pct_of_active,
-  round(100.0 * completed
-        / nullif(lag(completed) OVER (ORDER BY lesson_id), 0), 1)        AS kept_from_previous_pct,
-  avg_attempts_to_complete
-FROM per_lesson
-ORDER BY lesson_id;
+  l.lesson_id,
+  l.started,
+  l.completed,
+  round(100.0 * l.completed / nullif((SELECT count(*) FROM active), 0), 1) AS completed_pct_of_active,
+  (SELECT round(100.0 * count(cur.user_id) / nullif(count(*), 0), 1)
+     FROM lesson_progress prev
+     LEFT JOIN lesson_progress cur
+       ON cur.user_id = prev.user_id AND cur.lesson_id = l.lesson_id AND cur.completed
+    WHERE prev.lesson_id = l.previous_id AND prev.completed)             AS kept_from_previous_pct,
+  l.avg_attempts_to_complete
+FROM per_lesson l
+ORDER BY l.lesson_id;
 
 
 -- 4. Where people get stuck inside a lesson -----------------------------------
@@ -136,7 +142,7 @@ ORDER BY 1;
 -- Distribution of completed lessons per active session (0 = practice only or
 -- never finished a lesson).
 WITH active AS (
-  SELECT user_id FROM lesson_progress
+  SELECT user_id FROM lesson_progress WHERE attempts > 0
   UNION
   SELECT user_id FROM free_practice_stats
 )
@@ -169,7 +175,7 @@ FROM free_practice_stats;
 -- Which layout active sessions use (sessions that never changed it have no
 -- settings row and are on the default, es-dvorak-xkb).
 WITH active AS (
-  SELECT user_id FROM lesson_progress
+  SELECT user_id FROM lesson_progress WHERE attempts > 0
   UNION
   SELECT user_id FROM free_practice_stats
 )
@@ -193,7 +199,8 @@ WITH lessons AS (
 practice AS (
   SELECT
     user_id,
-    round(sum(duration) / 60.0) AS practice_minutes,
+    sum(duration) / 60.0 AS practice_minutes,
+    count(*) AS runs,
     (array_agg(wpm ORDER BY created_at))[1]      AS first_wpm,
     (array_agg(wpm ORDER BY created_at DESC))[1] AS latest_wpm
   FROM free_practice_stats GROUP BY user_id
@@ -201,9 +208,9 @@ practice AS (
 SELECT
   count(*)                                                     AS heavy_sessions,
   round(100.0 * count(*) / nullif((SELECT count(*) FROM (
-    SELECT user_id FROM lesson_progress
+    SELECT user_id FROM lesson_progress WHERE attempts > 0
     UNION SELECT user_id FROM free_practice_stats) a), 0), 1)  AS pct_of_active,
-  round(avg(p.latest_wpm - p.first_wpm), 1)                    AS avg_wpm_gain_in_practice
+  round(avg(p.latest_wpm - p.first_wpm) FILTER (WHERE p.runs >= 2), 1) AS avg_wpm_gain_in_practice
 FROM users u
 LEFT JOIN lessons l  ON l.user_id = u.id
 LEFT JOIN practice p ON p.user_id = u.id
