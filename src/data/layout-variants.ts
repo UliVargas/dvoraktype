@@ -62,3 +62,20 @@ export const US_DVORAK_INTL: LayoutVariantConfig = {
     "H está en la fila guía y R en la fila superior (posiciones estándar US Dvorak). " +
     "Para escribir ñ se usa la secuencia tecla muerta ~ seguida de n.",
 } as const;
+
+// ===================================================================
+// Dvorak Latinoamericano (XKB)
+// ===================================================================
+// - Mismas letras que el Dvorak español (ñ nativa, R en fila guía)
+// - Cambia la puntuación: ¿ ¡ junto al 0, ´ ¨ como teclas muertas a la
+//   derecha de la L
+// ===================================================================
+export const LATAM_DVORAK_XKB: LayoutVariantConfig = {
+  variant: "latam-dvorak-xkb",
+  displayName: "Dvorak Latinoamérica (XKB)",
+  description: "Distribución Dvorak del sistema XKB de Linux para español latinoamericano.",
+  platforms: ["Linux (X11)", "Linux (Wayland/XKB)"],
+  notes:
+    "Letras iguales al Dvorak español. ¿ y ¡ están junto al 0, " +
+    "y los acentos (´) y la diéresis (¨) son teclas muertas a la derecha de la L.",
+} as const;

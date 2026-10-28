@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import legacyKeyCodes from "./__fixtures__/legacy-key-codes.json";
+import { lessons } from "./lessons";
 import {
   DEFAULT_LAYOUT,
   LAYOUT_VARIANT_IDS,
@@ -11,7 +12,11 @@ import type { LayoutVariant } from "./types";
 
 describe("layout registry", () => {
   it("registers every layout variant with its own layout", () => {
-    expect(LAYOUT_VARIANT_IDS).toEqual(["es-dvorak-xkb", "us-dvorak-intl"]);
+    expect(LAYOUT_VARIANT_IDS).toEqual([
+      "es-dvorak-xkb",
+      "us-dvorak-intl",
+      "latam-dvorak-xkb",
+    ]);
     for (const variant of LAYOUT_VARIANT_IDS) {
       expect(getLayoutDefinition(variant).layout.variant).toBe(variant);
     }
@@ -38,11 +43,17 @@ describe("layout registry", () => {
 });
 
 describe("getKeyCodesForChar", () => {
+  // Deliberate changes to the snapshot below, each with its own test
+  const intendedChanges: Record<string, readonly string[]> = {
+    "us-dvorak-intl": ["ñ", "Ñ"],
+  };
+
   // Snapshot of the pre-refactor highlight logic for every character in the
   // lessons, quotes and word lists: the refactor must not change it.
   for (const [variant, byChar] of Object.entries(legacyKeyCodes)) {
     it(`highlights the same keys as before for ${variant}`, () => {
       for (const [char, codes] of Object.entries(byChar)) {
+        if (intendedChanges[variant]?.includes(char)) continue;
         expect([char, getKeyCodesForChar(variant as LayoutVariant, char)]).toEqual([char, codes]);
       }
     });
@@ -63,5 +74,78 @@ describe("getKeyCodesForChar", () => {
   it("returns nothing for empty input or unknown characters", () => {
     expect(getKeyCodesForChar("es-dvorak-xkb", "")).toEqual([]);
     expect(getKeyCodesForChar("es-dvorak-xkb", "€")).toEqual([]);
+  });
+});
+
+describe("Latin American Dvorak (XKB latam dvorak)", () => {
+  const latam = "latam-dvorak-xkb";
+
+  it("is registered with its own label", () => {
+    expect(getLayoutDefinition(latam).layout.variant).toBe(latam);
+    expect(getLayoutDefinition(latam).layout.name).toBe("Dvorak Latinoamérica");
+    expect(getLayoutDefinition(latam).menuLabel).toBe("Dvorak Latam");
+  });
+
+  // "los signos de puntuación si cambian ligeramente (¨,´,¿,¡)"
+  it("puts ¿ and ¡ on the key right of 0 (¿ unshifted, ¡ with Shift)", () => {
+    expect(getKeyCodesForChar(latam, "¿")).toEqual(["Equal"]);
+    expect(getKeyCodesForChar(latam, "¡")).toEqual(["Equal"]);
+    const equalKey = getLayoutDefinition(latam).layout.rows.number.find((k) => k.code === "Equal");
+    expect([equalKey?.key, equalKey?.shiftKey]).toEqual(["¿", "¡"]);
+  });
+
+  it("composes acute accents and diaeresis with the dead key right of L", () => {
+    expect(getKeyCodesForChar(latam, "á")).toEqual(["BracketLeft", "KeyA"]);
+    expect(getKeyCodesForChar(latam, "É")).toEqual(["BracketLeft", ...getKeyCodesForChar(latam, "E")]);
+    expect(getKeyCodesForChar(latam, "ü")).toEqual(["BracketLeft", ...getKeyCodesForChar(latam, "u")]);
+    const deadKey = getLayoutDefinition(latam).layout.rows.top.find((k) => k.code === "BracketLeft");
+    expect([deadKey?.key, deadKey?.shiftKey]).toEqual(["´", "¨"]);
+  });
+
+  it("differs from Spanish Dvorak only in the six punctuation keys XKB changes", () => {
+    const keysByCode = (variant: LayoutVariant) =>
+      new Map(
+        Object.values(getLayoutDefinition(variant).layout.rows)
+          .flat()
+          .map((k) => [k.code, [k.key, k.shiftKey, k.finger, k.row, k.position]]),
+      );
+    const es = keysByCode("es-dvorak-xkb");
+    const la = keysByCode(latam);
+    const changed = [...la.keys()].filter((code) => JSON.stringify(la.get(code)) !== JSON.stringify(es.get(code)));
+    expect(changed.sort()).toEqual(
+      ["Backquote", "Backslash", "BracketLeft", "Digit3", "Equal", "Quote"].sort(),
+    );
+    expect(la.get("Backquote")?.slice(0, 2)).toEqual(["|", "°"]);
+    expect(la.get("Digit3")?.slice(0, 2)).toEqual(["3", "#"]);
+    expect(la.get("Quote")?.slice(0, 2)).toEqual(["{", "["]);
+    expect(la.get("Backslash")?.slice(0, 2)).toEqual(["}", "]"]);
+  });
+});
+
+describe("every lesson character is typeable", () => {
+  const lessonChars = [
+    ...new Set(lessons.flatMap((l) => l.exercises.flatMap((e) => [...e.content]))),
+  ];
+
+  it("guides ñ on US International through the ~ dead key", () => {
+    const tilde = getKeyCodesForChar("us-dvorak-intl", "~");
+    expect(getKeyCodesForChar("us-dvorak-intl", "ñ")).toEqual([...tilde, ...getKeyCodesForChar("us-dvorak-intl", "n")]);
+    expect(getKeyCodesForChar("us-dvorak-intl", "Ñ")).toEqual([...tilde, ...getKeyCodesForChar("us-dvorak-intl", "N")]);
+  });
+
+  for (const variant of LAYOUT_VARIANT_IDS) {
+    it(`highlights a key for every lesson character in ${variant}, except declared exceptions`, () => {
+      const unsupported = getLayoutDefinition(variant).unsupportedChars;
+      const missing = lessonChars.filter(
+        (c) => getKeyCodesForChar(variant, c).length === 0 && !unsupported.includes(c),
+      );
+      expect(missing).toEqual([]);
+    });
+  }
+
+  it("declares ¿ and ¡ as unsupported only on US International", () => {
+    expect(getLayoutDefinition("us-dvorak-intl").unsupportedChars).toEqual(["¿", "¡"]);
+    expect(getLayoutDefinition("es-dvorak-xkb").unsupportedChars).toEqual([]);
+    expect(getLayoutDefinition("latam-dvorak-xkb").unsupportedChars).toEqual([]);
   });
 });

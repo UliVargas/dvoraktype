@@ -7,8 +7,12 @@
 // ===================================================================
 // - 'es-dvorak-xkb': Dvorak español (Linux XKB)
 // - 'us-dvorak-intl': Dvorak estadounidense (Internacional)
+// - 'latam-dvorak-xkb': Dvorak latinoamericano (Linux XKB)
 // ===================================================================
-export type LayoutVariant = "es-dvorak-xkb" | "us-dvorak-intl";
+export type LayoutVariant =
+  | "es-dvorak-xkb"
+  | "us-dvorak-intl"
+  | "latam-dvorak-xkb";
 
 export type ExerciseType = "letters" | "words" | "sentences";
 

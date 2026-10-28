@@ -12,6 +12,7 @@
 - **Dos Layouts Soportados**: 
   - `Dvorak Español (XKB)`: Basado en la distribución de Linux. Esta variante se utiliza como estándar actual, ¡pero próximamente se añadirán las variantes exactas nativas de Windows y macOS!
   - `Dvorak US Internacional`: Para quienes usan el layout americano pero necesitan tipear en español usando teclas muertas.
+  - `Dvorak Latinoamérica (XKB)`: La variante latinoamericana de Linux. Las letras son las mismas que en el Dvorak español; cambia la puntuación: `¿` y `¡` junto al 0, y los acentos (`´`) y la diéresis (`¨`) como teclas muertas a la derecha de la L.
 - **Lecciones Progresivas**: Ejercicios generados con palabras reales en español.
 - **Práctica Libre**: Generador infinito de frases y citas célebres.
 - **Buzón de Sugerencias**: Un sistema anónimo para recibir feedback de la comunidad directamente a la base de datos.

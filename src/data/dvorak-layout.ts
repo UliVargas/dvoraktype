@@ -1067,3 +1067,41 @@ export const usDvorakIntlLayout: KeyboardLayout = {
     space: spaceRow,
   },
 } as const;
+
+// ---------------------------------------------------------------------------
+// Distribución Dvorak Latinoamericana (XKB)
+// Fuente: xkeyboard-config, symbols/latam, variante "dvorak"
+//   ("Spanish (Latin American, Dvorak)"), commit b86177c2 (2023-07-04).
+//
+// Es idéntica al Dvorak español salvo seis teclas de puntuación, así que se
+// deriva de él y solo se sobrescriben esas teclas (mismos dedos y posiciones):
+// - Backquote:    | °   (ES: º ª)
+// - Digit3 Shift: #     (ES: ·)
+// - Equal:        ¿ ¡   (ES: ¡ ¿)
+// - BracketLeft:  ´ ¨   teclas muertas (ES: ` ^)
+// - Quote:        { [   (ES: ´ ¨)
+// - Backslash:    } ]   (ES: ç Ç)
+// ---------------------------------------------------------------------------
+const latamOverrides: Readonly<Record<string, Pick<KeyDef, "key" | "shiftKey">>> = {
+  Backquote: { key: "|", shiftKey: "°" },
+  Digit3: { key: "3", shiftKey: "#" },
+  Equal: { key: "¿", shiftKey: "¡" },
+  BracketLeft: { key: "´", shiftKey: "¨" },
+  Quote: { key: "{", shiftKey: "[" },
+  Backslash: { key: "}", shiftKey: "]" },
+};
+
+const withLatamOverrides = (row: readonly KeyDef[]): readonly KeyDef[] =>
+  row.map((keyDef) => ({ ...keyDef, ...latamOverrides[keyDef.code] }));
+
+export const latamDvorakLayout: KeyboardLayout = {
+  name: "Dvorak Latinoamérica",
+  variant: "latam-dvorak-xkb",
+  rows: {
+    number: withLatamOverrides(numberRow),
+    top: withLatamOverrides(topRow),
+    home: withLatamOverrides(homeRow),
+    bottom: withLatamOverrides(bottomRow),
+    space: spaceRow,
+  },
+};

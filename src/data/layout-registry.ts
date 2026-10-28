@@ -9,9 +9,14 @@
 // este registro.
 // ============================================================================
 
-import { esDvorakLayout, usDvorakIntlLayout } from "./dvorak-layout";
+import {
+  esDvorakLayout,
+  latamDvorakLayout,
+  usDvorakIntlLayout,
+} from "./dvorak-layout";
 import {
   ES_DVORAK_XKB,
+  LATAM_DVORAK_XKB,
   US_DVORAK_INTL,
   type LayoutVariantConfig,
 } from "./layout-variants";
@@ -24,6 +29,11 @@ export interface LayoutDefinition {
   readonly config: LayoutVariantConfig;
   /** Short label for the layout selector menu. */
   readonly menuLabel: string;
+  /**
+   * Characters this layout can only type through OS-specific combinations
+   * (e.g. AltGr/Option) that the on-screen keyboard can't show.
+   */
+  readonly unsupportedChars: readonly string[];
 }
 
 // ===================================================================
@@ -31,7 +41,8 @@ export interface LayoutDefinition {
 // ===================================================================
 // La tecla muerta se pulsa primero y después la vocal.
 // - ES XKB: ´ para acentos agudos, ¨ para diéresis
-// - US Intl: ' para acentos agudos, " para diéresis
+// - US Intl: ' para acentos agudos, " para diéresis, ~ para la ñ
+// - Latam XKB: ´ para acentos agudos, ¨ para diéresis (tecla a la derecha de la L)
 // ===================================================================
 function accentCompositions(acute: string, diaeresis: string) {
   const compositions: Record<string, string[]> = {};
@@ -52,12 +63,25 @@ const LAYOUT_REGISTRY = {
     deadKeyCompositions: accentCompositions("´", "¨"),
     config: ES_DVORAK_XKB,
     menuLabel: "Dvorak Español",
+    unsupportedChars: [],
   },
   "us-dvorak-intl": {
     layout: usDvorakIntlLayout,
-    deadKeyCompositions: accentCompositions("'", '"'),
+    deadKeyCompositions: {
+      ...accentCompositions("'", '"'),
+      ñ: ["~", "n"],
+      Ñ: ["~", "N"],
+    },
     config: US_DVORAK_INTL,
     menuLabel: "Dvorak US Int.",
+    unsupportedChars: ["¿", "¡"],
+  },
+  "latam-dvorak-xkb": {
+    layout: latamDvorakLayout,
+    deadKeyCompositions: accentCompositions("´", "¨"),
+    config: LATAM_DVORAK_XKB,
+    menuLabel: "Dvorak Latam",
+    unsupportedChars: [],
   },
 } as const satisfies Record<LayoutVariant, LayoutDefinition>;
 

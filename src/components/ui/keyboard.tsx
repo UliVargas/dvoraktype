@@ -1,6 +1,9 @@
 import { component$, useSignal, useOnDocument, $ } from "@builder.io/qwik";
 import { type KeyboardLayout } from "../../data/types";
-import { getKeyCodesForChar } from "../../data/layout-registry";
+import {
+  getKeyCodesForChar,
+  getLayoutDefinition,
+} from "../../data/layout-registry";
 import { Keycap } from "./keycap";
 
 interface KeyboardProps {
@@ -42,6 +45,11 @@ export const Keyboard = component$<KeyboardProps>(({ layout, targetChar }) => {
     return targetCodes.includes(code);
   };
 
+  // Characters this layout only types through OS combinations (AltGr/Option)
+  const isUnsupportedTarget =
+    !!targetChar &&
+    getLayoutDefinition(layout.variant).unsupportedChars.includes(targetChar);
+
   const isPressed = (code: string) => {
     return pressedCodes.value.has(code);
   };
@@ -74,6 +82,17 @@ export const Keyboard = component$<KeyboardProps>(({ layout, targetChar }) => {
 
   return (
     <div class="brutal-card p-4 sm:p-6 bg-surface-muted overflow-x-auto">
+      <p
+        class={
+          isUnsupportedTarget
+            ? "mb-3 text-sm font-bold text-surface-dark/80"
+            : "sr-only"
+        }
+        aria-live="polite"
+      >
+        {isUnsupportedTarget &&
+          `«${targetChar}» no tiene una tecla directa en ${layout.name}: escríbelo con la combinación de tu sistema (AltGr u Option).`}
+      </p>
       <div class="min-w-212.5">
         {/* Renderizamos las filas sin márgenes artificiales porque las teclas estructurales (Tab, Caps, Shift) ya crean el escalonamiento natural */}
         {renderRow("number")}
