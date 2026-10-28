@@ -13,9 +13,9 @@ Branch: `chore/tests-and-ci` · Delivery: ask-on-risk · Test runner: Vitest (to
 
 ## Tasks
 
-- [ ] T1 (S1): add Vitest with one smoke test. Route: inline.
-- [ ] T2 (S2): add the unit tests, in parallel with the features that introduce the code under test. Route: inline.
-- [ ] T3 (S3): add the DB integration tests and the Postgres service in CI. Route: inline.
+- [x] T1 (S1) `2150655`: add Vitest with one smoke test. Route: inline.
+- [ ] T2 (S2) (partial: the server-side pass computation is covered by `src/server/progress-rules.test.ts`): add the unit tests, in parallel with the features that introduce the code under test. Route: inline.
+- [ ] T3 (S3) (partial: `src/server/progress.service.test.ts` runs against a real Postgres when `TEST_DATABASE_URL` is set; no CI service yet): add the DB integration tests and the Postgres service in CI. Route: inline.
 - [ ] T4 (S4, S5): add `.github/workflows/ci.yml`. Route: inline. Risk: item 5 (CI), so it needs an independent verifier.
 
 ## Log
