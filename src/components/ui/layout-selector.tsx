@@ -1,5 +1,7 @@
 import {
+  $,
   component$,
+  sync$,
   useId,
   useSignal,
   useVisibleTask$,
@@ -94,23 +96,35 @@ export const LayoutSelector = component$<LayoutSelectorProps>(
             role="menu"
             aria-labelledby={triggerId}
             class="absolute top-full right-0 mt-2 w-full border-2 border-border shadow-brutal rounded-brutal-sm bg-surface-card overflow-hidden z-50 animate-fade-in flex flex-col"
-            onKeyDown$={(event, menu) => {
-              const key = (event as KeyboardEvent).key;
-              if (key === "Escape") {
-                isOpen.value = false;
-                triggerRef.value?.focus();
-                return;
-              }
-              const list = [
-                ...menu.querySelectorAll<HTMLElement>('[role="menuitemradio"]'),
-              ];
-              const next = nextMenuIndex(
-                key,
-                list.indexOf(menu.ownerDocument.activeElement as HTMLElement),
-                list.length,
-              );
-              if (next !== undefined) list[next]?.focus();
-            }}
+            onKeyDown$={[
+              // Synchronous so it can stop navigation keys from scrolling the page
+              sync$((event: KeyboardEvent) => {
+                if (
+                  ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
+                ) {
+                  event.preventDefault();
+                }
+              }),
+              $((event: Event, menu: HTMLElement) => {
+                const key = (event as KeyboardEvent).key;
+                if (key === "Escape") {
+                  isOpen.value = false;
+                  triggerRef.value?.focus();
+                  return;
+                }
+                const list = [
+                  ...menu.querySelectorAll<HTMLElement>(
+                    '[role="menuitemradio"]',
+                  ),
+                ];
+                const next = nextMenuIndex(
+                  key,
+                  list.indexOf(menu.ownerDocument.activeElement as HTMLElement),
+                  list.length,
+                );
+                if (next !== undefined) list[next]?.focus();
+              }),
+            ]}
           >
             {LAYOUT_VARIANT_IDS.map((variant) => (
               <button
@@ -123,9 +137,13 @@ export const LayoutSelector = component$<LayoutSelectorProps>(
                 preventdefault:mousedown
                 class={`text-left px-3 py-2.5 text-sm font-bold hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary transition-colors border-t-2 border-border/20 first:border-t-0 ${current === variant ? "bg-primary text-primary-foreground hover:bg-primary-dark" : "text-surface-dark"}`}
                 onClick$={async () => {
-                  await onSelect$(variant);
-                  isOpen.value = false;
-                  triggerRef.value?.focus();
+                  try {
+                    await onSelect$(variant);
+                  } finally {
+                    // Close even if saving the choice fails
+                    isOpen.value = false;
+                    triggerRef.value?.focus();
+                  }
                 }}
               >
                 {getLayoutDefinition(variant).menuLabel}
