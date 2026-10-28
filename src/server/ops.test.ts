@@ -53,12 +53,15 @@ describe("createHealthHandler", () => {
 
   it("responds 503 when the database doesn't answer in time", async () => {
     vi.useFakeTimers();
-    const res = fakeRes();
-    const pending = createHealthHandler(() => new Promise(() => {}), { timeoutMs: 2000 })({} as never, res as never);
-    await vi.advanceTimersByTimeAsync(2000);
-    await pending;
-    expect([res.statusCode, res.body]).toEqual([503, { status: "unavailable" }]);
-    vi.useRealTimers();
+    try {
+      const res = fakeRes();
+      const pending = createHealthHandler(() => new Promise(() => {}), { timeoutMs: 2000 })({} as never, res as never);
+      await vi.advanceTimersByTimeAsync(2000);
+      await pending;
+      expect([res.statusCode, res.body]).toEqual([503, { status: "unavailable" }]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("responds 503 when the database doesn't", async () => {
@@ -85,6 +88,7 @@ describe("createShutdown", () => {
 
   it("forces exit 1 when closing hangs past the timeout", async () => {
     vi.useFakeTimers();
+    try {
     const exit = vi.fn();
     const shutdown = createShutdown({
       server: { close: () => {} },
@@ -96,7 +100,9 @@ describe("createShutdown", () => {
     void shutdown("SIGTERM");
     await vi.advanceTimersByTimeAsync(1000);
     expect(exit).toHaveBeenCalledWith(1);
-    vi.useRealTimers();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("only runs once when the signal repeats", async () => {

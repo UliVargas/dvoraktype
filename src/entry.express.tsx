@@ -46,7 +46,8 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
 
 // Bring the database schema up to date before accepting traffic. The
 // database may still be booting (e.g. during a deploy), so connection
-// failures are retried for about a minute before giving up.
+// failures are retried: 7 attempts with 45 s of backoff in total, each
+// attempt bounded by a 10 s connect timeout (src/db/migrate.ts).
 await retryWithBackoff(() => runMigrations(connectionString, migrationsDir), {
   attempts: 7,
   baseMs: 1000,
@@ -97,14 +98,17 @@ process.on("uncaughtExceptionMonitor", (error, origin) => {
 // Liveness and readiness probe for the platform: checks the database too
 app.get("/health", createHealthHandler(pingDb));
 
-// Enable gzip compression
-app.use(compression());
-
-// Static asset handlers
+// Static asset handlers, gzip-compressed. Compression is not applied to the
+// pages: it buffers output and would delay Qwik City's streamed SSR.
 // https://expressjs.com/en/starter/static-files.html
-app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: "1y" }));
+app.use(
+  `/build`,
+  compression(),
+  express.static(buildDir, { immutable: true, maxAge: "1y" }),
+);
 app.use(
   `/assets`,
+  compression(),
   express.static(assetsDir, { immutable: true, maxAge: "1y" }),
 );
 app.use(express.static(distDir, { redirect: false }));

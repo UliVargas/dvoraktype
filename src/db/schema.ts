@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { MAX_ACCURACY, MAX_WPM } from "../data/limits";
 import {
   pgTable,
   text,
@@ -16,9 +17,11 @@ const createdAt = () =>
 const updatedAt = () =>
   timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
 
-// Same ranges the server validates (src/server/progress-rules.ts)
-const wpmInRange = (column: string) => sql.raw(`${column} between 0 and 300`);
-const accuracyInRange = (column: string) => sql.raw(`${column} between 0 and 100`);
+// Same ranges the server validates
+const wpmInRange = (column: string) =>
+  sql.raw(`${column} between 0 and ${MAX_WPM}`);
+const accuracyInRange = (column: string) =>
+  sql.raw(`${column} between 0 and ${MAX_ACCURACY}`);
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(), // Session ID

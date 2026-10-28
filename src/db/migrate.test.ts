@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { runMigrations } from "./migrate";
+import { MIGRATION_LOCK_ID, runMigrations } from "./migrate";
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 const migrationsDir = join(__dirname, "..", "..", "drizzle");
@@ -100,7 +100,7 @@ describe.skipIf(!testDatabaseUrl)("runMigrations (Postgres)", () => {
   it("gives up waiting for the migration lock after the lock timeout", async () => {
     const url = await freshDatabase();
     const holder = postgres(url, { max: 1, onnotice: () => {} });
-    await holder`select pg_advisory_lock(727001)`;
+    await holder`select pg_advisory_lock(${MIGRATION_LOCK_ID})`;
     try {
       await expect(runMigrations(url, migrationsDir, { lockTimeoutMs: 300 })).rejects.toThrow(
         /lock timeout/i,

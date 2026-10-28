@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { lessons } from "../data/lessons";
+import { MAX_ACCURACY, MAX_WPM } from "../data/limits";
 
 // ===================================================================
 // Server-side rules for lesson progress.
@@ -7,11 +8,10 @@ import { lessons } from "../data/lessons";
 // whether a lesson may be practiced at all, is decided here.
 // ===================================================================
 
-const MAX_WPM = 300;
 const MAX_ELAPSED_MS = 60 * 60 * 1000;
 
 const wpm = z.coerce.number().int().min(0).max(MAX_WPM);
-const accuracy = z.coerce.number().int().min(0).max(100);
+const accuracy = z.coerce.number().int().min(0).max(MAX_ACCURACY);
 
 export const exerciseResultSchema = z.object({
   lessonId: z.string().min(1),

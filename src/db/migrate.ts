@@ -6,7 +6,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
 // Arbitrary constant shared by every instance, so only one runs migrations at a time.
-const MIGRATION_LOCK_ID = 727_001;
+export const MIGRATION_LOCK_ID = 727_001;
 
 // Tables created by the initial migration (0000); a baseline needs all of them
 const INITIAL_TABLES = [
@@ -35,11 +35,18 @@ export async function runMigrations(
   { lockTimeoutMs = 60_000 }: { lockTimeoutMs?: number } = {},
 ) {
   // A single dedicated connection: advisory locks are session-scoped.
-  const client = postgres(connectionString, { max: 1, onnotice: () => {} });
+  const client = postgres(connectionString, {
+    max: 1,
+    connect_timeout: 10, // seconds, so an unreachable host fails each attempt quickly
+    onnotice: () => {},
+  });
   try {
-    // Don't wait forever behind an instance that is stuck holding the lock
-    await client.unsafe(`set lock_timeout = ${Math.trunc(lockTimeoutMs)}`);
+    // Don't wait forever behind an instance that is stuck holding the lock...
+    await client`select set_config('lock_timeout', ${String(Math.trunc(lockTimeoutMs))}, false)`;
     await client`select pg_advisory_lock(${MIGRATION_LOCK_ID})`;
+    // ...but once it's ours, let the migrations wait for the table locks they
+    // need instead of aborting halfway through a deploy
+    await client`select set_config('lock_timeout', '0', false)`;
     await baselineIfNeeded(client, migrationsFolder);
     await migrate(drizzle(client), { migrationsFolder });
     await client`select pg_advisory_unlock(${MIGRATION_LOCK_ID})`;
