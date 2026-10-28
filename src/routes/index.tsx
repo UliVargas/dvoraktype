@@ -49,6 +49,7 @@ export default component$(() => {
   );
 
   const currentLayout = getLayoutDefinition(layoutVariant.value).layout;
+  const layoutNotes = getLayoutDefinition(layoutVariant.value).config.notes;
   const menuLabels = LAYOUT_VARIANT_IDS.map((id) => getLayoutDefinition(id).menuLabel);
   const layoutNames = `${menuLabels.slice(0, -1).join(", ")} o ${menuLabels.at(-1)}`;
 
@@ -59,10 +60,9 @@ export default component$(() => {
           Bienvenido a Dvorak<span class="text-primary">Type</span>
         </h1>
         <p class="text-sm md:text-base text-surface-dark/80 mb-6 max-w-3xl text-center font-medium z-10">
-          Domina el teclado más ergonómico del mundo. Selecciona tu distribución
-          ({layoutNames}) en la parte superior para que coincida
-          físicamente con las teclas{" "}
-          <strong class="text-primary">Enter y Shift</strong> de tu hardware.
+          Domina el teclado más ergonómico del mundo. Elige arriba la misma
+          distribución que tienes configurada en tu sistema ({layoutNames}) para
+          que el teclado en pantalla y las lecciones muestren tus teclas.
         </p>
 
         <div class="w-full overflow-x-auto pb-4 custom-scrollbar z-10">
@@ -70,6 +70,9 @@ export default component$(() => {
             <Keyboard layout={currentLayout} />
           </div>
         </div>
+        <p class="text-sm text-surface-dark/80 max-w-3xl text-center z-10">
+          <strong>{currentLayout.name}:</strong> {layoutNotes}
+        </p>
 
         <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 rounded-full border-4 border-primary/10 pointer-events-none" />
       </div>

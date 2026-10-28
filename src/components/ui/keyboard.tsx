@@ -106,36 +106,36 @@ export const Keyboard = component$<KeyboardProps>(({ layout, targetChar }) => {
       <div class="mt-8 flex justify-center gap-2 sm:gap-4 flex-wrap text-xs font-mono font-bold uppercase text-surface-dark/70">
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-left-pinky border-2 border-border rounded-full"></div>
-          Meñique L
+          Meñique izq.
         </div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-left-ring border-2 border-border rounded-full"></div>
-          Anular L
+          Anular izq.
         </div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-left-middle border-2 border-border rounded-full"></div>
-          Medio L
+          Medio izq.
         </div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-left-index border-2 border-border rounded-full"></div>
-          Índice L
+          Índice izq.
         </div>
         <div class="w-4"></div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-right-index border-2 border-border rounded-full"></div>
-          Índice R
+          Índice der.
         </div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-right-middle border-2 border-border rounded-full"></div>
-          Medio R
+          Medio der.
         </div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-right-ring border-2 border-border rounded-full"></div>
-          Anular R
+          Anular der.
         </div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 bg-finger-right-pinky border-2 border-border rounded-full"></div>
-          Meñique R
+          Meñique der.
         </div>
       </div>
     </div>

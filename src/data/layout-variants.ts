@@ -40,8 +40,8 @@ export const ES_DVORAK_XKB: LayoutVariantConfig = {
   description: "Distribución Dvorak del sistema XKB de Linux para español.",
   platforms: ["Linux (X11)", "Linux (Wayland/XKB)"],
   notes:
-    "R está en la fila guía y H en la fila superior. " +
-    "Incluye ñ, ç y tecla muerta para acentos de forma nativa.",
+    "R está en la fila guía y H en la fila superior. La ñ y la ç tienen tecla " +
+    "propia, y los acentos se escriben con la tecla muerta ´ a la derecha de la S.",
 } as const;
 
 // ===================================================================
@@ -54,13 +54,14 @@ export const ES_DVORAK_XKB: LayoutVariantConfig = {
 // ===================================================================
 export const US_DVORAK_INTL: LayoutVariantConfig = {
   variant: "us-dvorak-intl",
-  displayName: "Dvorak US International",
+  displayName: "Dvorak US Internacional",
   description:
     "Distribución Dvorak estadounidense con teclas muertas para caracteres internacionales.",
   platforms: ["macOS", "Windows", "Linux"],
   notes:
-    "H está en la fila guía y R en la fila superior (posiciones estándar US Dvorak). " +
-    "Para escribir ñ se usa la secuencia tecla muerta ~ seguida de n.",
+    "H está en la fila guía y R en la fila superior. Los acentos se escriben con " +
+    "la tecla muerta ' seguida de la vocal, la ü con \" + u, la ñ con ~ + n, " +
+    "y ¿ y ¡ con AltGr u Option.",
 } as const;
 
 // ===================================================================
@@ -76,6 +77,7 @@ export const LATAM_DVORAK_XKB: LayoutVariantConfig = {
   description: "Distribución Dvorak del sistema XKB de Linux para español latinoamericano.",
   platforms: ["Linux (X11)", "Linux (Wayland/XKB)"],
   notes:
-    "Letras iguales al Dvorak español. ¿ y ¡ están junto al 0, " +
+    "Letras iguales al Dvorak español (R en la fila guía, H en la superior). " +
+    "¿ y ¡ están junto al 0, " +
     "y los acentos (´) y la diéresis (¨) son teclas muertas a la derecha de la L.",
 } as const;

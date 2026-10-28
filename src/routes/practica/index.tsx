@@ -84,7 +84,8 @@ export default component$(() => {
         <p>
           <strong>Modo Continuo:</strong> Escribe a tu propio ritmo. Al terminar
           una frase, cargaremos la siguiente automáticamente para que no rompas
-          tu flujo. Tus estadísticas se guardan en tiempo real.
+          tu flujo. Tus estadísticas se muestran en tiempo real y se guardan al
+          terminar cada frase.
         </p>
       </div>
 
