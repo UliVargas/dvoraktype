@@ -52,3 +52,11 @@ Branch: `fix/typing-engine-correctness` · Delivery: ask-on-risk · Test runner:
   - R3-nfd-literals-not-explicit: the tests held raw combining characters, not escapes. My earlier claim that they used escapes was wrong (a false-positive `grep -F` with a backslash). They are now `\u0301`/`\u0308` escapes, and both test files are verified NFC with precomposed targets.
   - Checks: 104 unit tests pass; tsc and eslint are clean.
 - **L8** (2026-10-28, user): "haz merge y push cuando termine el verificador".
+- **L9** (2026-10-28, user): "sigue con la mejora del redibujado por carácter".
+  - `baa9c40`: each character is now a `TypingChar` component with primitive props (char, state, isCurrent), with identical markup. `116ff5b` pins that markup with 7 tests, mutation-checked against a cursor that is always drawn.
+  - Native review (lineage `review-70fb8109b6d08806`, user consent `granted`): approved and acknowledged.
+- **L10** (2026-10-28): real-Chromium measurement, MutationObserver on `.wrap-break-word`, main `04ed107` vs candidate. **S6 is met.**
+  - Steady-state keystrokes touch 1–2 spans with 3–8 mutation records, versus about 97 spans and 100 records on a 111-char quote at main. The lesson page drops from about 20 spans to 2.
+  - The first keystroke has a one-time burst of childList records at the root. Script time is unchanged (about 0.2–0.4 ms), and no extra q-*.js is fetched.
+  - Parity: DOM snapshots and mid-typing screenshots are identical; cursor, errors, completion, stats and retry all behave the same.
+  - Observed but not investigated: at a 30 ms typing delay main drops or misorders keystrokes (53% accuracy), while the candidate completes at 99%.
