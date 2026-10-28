@@ -7,6 +7,7 @@ import {
 } from "@builder.io/qwik";
 import { type TypingStats } from "../../data/types";
 import { useTypingEngine } from "../../hooks/use-typing-engine";
+import { TypingChar } from "./typing-char";
 
 interface TypingAreaProps {
   targetText: string;
@@ -74,41 +75,16 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
       </p>
 
       <div class="wrap-break-word select-none" aria-hidden="true">
-        {engine.state.targetChars.map((char, index) => {
-          const charState = engine.state.charStates[index];
-          const isCurrent = index === engine.state.currentIndex;
-
-          let stateClass = "text-surface-dark/40";
-          if (charState === "correct")
-            stateClass = "text-state-success font-semibold";
-          // Errors are also underlined so they don't rely on color alone
-          if (charState === "error")
-            stateClass = "text-white bg-state-error underline decoration-wavy decoration-2";
-
-          return (
-            <span
-              key={`${index}-${char}`}
-              data-char-state={charState}
-              class={[
-                "relative transition-colors duration-100",
-                stateClass,
-                char === " " ? "inline-block min-w-[1ch]" : "",
-                char === " " && charState === "error"
-                  ? "bg-state-error text-white"
-                  : "",
-              ]}
-            >
-              {char === " " && charState === "pending" ? (
-                <span class="opacity-20">·</span>
-              ) : (
-                char
-              )}
-              {isCurrent && !engine.state.isFinished && (
-                <span class="absolute left-0 bottom-0 w-full h-1 bg-primary animate-cursor-blink" />
-              )}
-            </span>
-          );
-        })}
+        {engine.state.targetChars.map((char, index) => (
+          <TypingChar
+            key={`${index}-${char}`}
+            char={char}
+            state={engine.state.charStates[index]}
+            isCurrent={
+              index === engine.state.currentIndex && !engine.state.isFinished
+            }
+          />
+        ))}
       </div>
     </div>
   );
