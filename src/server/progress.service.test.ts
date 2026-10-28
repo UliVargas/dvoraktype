@@ -8,7 +8,7 @@ import { lessons } from "../data/lessons";
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 
 // Locally the suite is skipped without a database; in CI that would hide it
-it.runIf(!!process.env.CI && !testDatabaseUrl)("requires TEST_DATABASE_URL in CI", () => {
+it.runIf(process.env.CI === "true" && !testDatabaseUrl)("requires TEST_DATABASE_URL in CI", () => {
   throw new Error("TEST_DATABASE_URL must be set in CI so the database tests run");
 });
 

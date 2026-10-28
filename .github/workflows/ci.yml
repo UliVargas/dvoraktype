@@ -10,12 +10,14 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded PR runs are cancelled; every commit on main keeps its result
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
     name: Lint, types, tests and build
     runs-on: ubuntu-latest
+    # Keep this service identical to the one in the docker job
     services:
       postgres:
         image: postgres:16-alpine
@@ -32,9 +34,9 @@ jobs:
       # Integration tests in src/server/*.test.ts run against this database
       TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           cache: pnpm
@@ -47,6 +49,7 @@ jobs:
   docker:
     name: Docker image boots and serves
     runs-on: ubuntu-latest
+    # Keep this service identical to the one in the check job
     services:
       postgres:
         image: postgres:16-alpine
@@ -60,9 +63,9 @@ jobs:
           --health-timeout 5s
           --health-retries 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/build-push-action@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           load: true
@@ -77,12 +80,17 @@ jobs:
             -e DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres \
             -e PORT=3000 \
             dvoraktype:ci
-          for i in $(seq 1 30); do
-            if docker logs app 2>&1 | grep -q "Server started"; then break; fi
+          booted=false
+          for i in $(seq 1 60); do
+            if docker logs app 2>&1 | grep -q "Server started"; then booted=true; break; fi
             if [ "$(docker inspect -f '{{.State.Running}}' app)" != "true" ]; then break; fi
             sleep 1
           done
           docker logs app
+          if [ "$booted" != "true" ]; then
+            echo "::error::The image did not boot: $(docker inspect -f 'running={{.State.Running}} exit={{.State.ExitCode}}' app)"
+            exit 1
+          fi
           curl -fsS -o /dev/null -w "GET / -> %{http_code}\n" http://localhost:3000/
           curl -fsS -o /dev/null -w "GET /sugerencias/ -> %{http_code}\n" http://localhost:3000/sugerencias/
           # The image must run the Node version the repo pins
