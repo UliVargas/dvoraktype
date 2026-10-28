@@ -50,3 +50,7 @@ Depends on: layout-variant-registry
   - `src/components/ui/keyboard.test.tsx` checks two things. On US Intl, `¿`/`¡` show "«X» no tiene una tecla directa en Dvorak US Internacional…" and the region is not `sr-only`. On ES and LatAm (with `¿`/`¡`), on US with a supported character, and with no target, the region stays empty and `sr-only`.
   - The test was written after the code, so it was mutation-checked instead of RED-first. Emptying US `unsupportedChars` makes 2 of 7 fail, and forcing `sr-only` makes 2 of 7 fail; both mutations were reverted.
   - Full suite: 96/96 with `TEST_DATABASE_URL`; tsc, eslint and build are clean.
+- **L10** (2026-10-28): native review (lens: reliability, user consent `granted`, lineage `review-9e3c52f30210fef1`): approved and acknowledged. Both test gaps are fixed in `0a2d3e2`:
+  - R3-001: the US `ñ`/`Ñ` test now asserts `["Backquote", "KeyL"]` explicitly.
+  - R3-002: the typeability check now covers quotes and both word lists, not only lessons.
+  - Mutation checks: removing `~` from US Backquote fails the `ñ` test, and dropping `;` from LatAm (a practice-only character) fails the LatAm typeability test. Both were reverted. 87 unit tests pass and tsc and eslint are clean.
