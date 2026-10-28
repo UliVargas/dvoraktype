@@ -86,7 +86,7 @@ El esquema vive en `src/db/schema.ts` y las migraciones versionadas en `drizzle/
 
 - La imagen (`Dockerfile`) solo incluye dependencias de producción y arranca con `node server/entry.express`.
 - `GET /health` responde `200` si la base de datos contesta y `503` si no (con un límite de 2 s). La imagen lo usa como `HEALTHCHECK`; en Railway puedes configurarlo como health check path.
-- Al arrancar, si la base de datos aún no está disponible, el servidor reintenta la conexión (7 intentos con 45 s de espera en total; cada intento corta a los 10 s) y aplica las migraciones antes de aceptar tráfico.
+- Al arrancar, si la base de datos aún no está disponible (o una migración no consigue un bloqueo de tabla en 5 s), el servidor reintenta (7 intentos con 45 s de espera en total; cada conexión corta a los 10 s) y aplica las migraciones antes de aceptar tráfico.
 - Ante `SIGTERM` (por ejemplo, en un deploy) deja de aceptar conexiones, termina las peticiones en curso y cierra la conexión a la base de datos.
 - Para probar la imagen de producción en local: `docker compose up --build` (sirve en `http://localhost:3000`).
 

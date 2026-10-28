@@ -46,8 +46,9 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
 
 // Bring the database schema up to date before accepting traffic. The
 // database may still be booting (e.g. during a deploy), so connection
-// failures are retried: 7 attempts with 45 s of backoff in total, each
-// attempt bounded by a 10 s connect timeout (src/db/migrate.ts).
+// failures and table-lock timeouts are retried: 7 attempts with 45 s of
+// backoff in total, each attempt bounded by a 10 s connect timeout
+// (src/db/migrate.ts).
 await retryWithBackoff(() => runMigrations(connectionString, migrationsDir), {
   attempts: 7,
   baseMs: 1000,
@@ -129,7 +130,7 @@ const server = app.listen(PORT, () => {
 const shutdown = createShutdown({
   server,
   closeDb,
-  timeoutMs: 10_000,
+  timeoutMs: 8_000, // below docker stop's default 10 s grace period
   exit: (code) => process.exit(code),
   log: (message) => console.log(message),
 });

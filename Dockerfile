@@ -57,8 +57,8 @@ ENV NODE_ENV=production
 # Run the application as a non-root user.
 USER node
 
-# Copy the production dependencies from the deps stage and also
-# the built application from the build stage into the image.
+# Copy the production dependencies from the prod-deps stage and the built
+# application from the build stage into the image.
 COPY --chown=node:node package.json .
 COPY --from=prod-deps --chown=node:node /usr/src/app/node_modules ./node_modules
 COPY --from=build --chown=node:node /usr/src/app/dist ./dist

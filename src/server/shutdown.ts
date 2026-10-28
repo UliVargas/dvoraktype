@@ -1,5 +1,8 @@
 interface ShutdownDeps {
-  server: { close: (callback: () => void) => void };
+  server: {
+    close: (callback: () => void) => void;
+    closeIdleConnections?: () => void;
+  };
   closeDb: () => Promise<unknown>;
   timeoutMs: number;
   exit: (code: number) => void;
@@ -23,7 +26,10 @@ export function createShutdown({ server, closeDb, timeoutMs, exit, log }: Shutdo
       }, timeoutMs);
       timer.unref?.();
 
-      await new Promise<void>((resolve) => server.close(() => resolve()));
+      const closed = new Promise<void>((resolve) => server.close(() => resolve()));
+      // Idle keep-alive sockets would otherwise hold close() until they time out
+      server.closeIdleConnections?.();
+      await closed;
       await closeDb();
       clearTimeout(timer);
       exit(0);

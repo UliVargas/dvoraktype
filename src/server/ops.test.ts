@@ -29,10 +29,15 @@ describe("retryWithBackoff", () => {
 });
 
 describe("isTransientDbError", () => {
-  it.each(["ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT", "EAI_AGAIN", "ECONNRESET", "CONNECT_TIMEOUT", "57P03"])(
+  it.each(["ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT", "EAI_AGAIN", "ECONNRESET", "CONNECT_TIMEOUT", "57P03", "55P03"])(
     "treats %s as transient",
     (code) => expect(isTransientDbError(Object.assign(new Error("x"), { code }))).toBe(true),
   );
+
+  it("looks through wrapped errors (drizzle puts the driver error in cause)", () => {
+    const wrapped = new Error("Failed query", { cause: Object.assign(new Error("x"), { code: "ECONNRESET" }) });
+    expect(isTransientDbError(wrapped)).toBe(true);
+  });
 
   it.each([["42601"], ["28P01"], [undefined]])("treats %s as permanent", (code) => {
     expect(isTransientDbError(Object.assign(new Error("x"), { code }))).toBe(false);
@@ -76,14 +81,18 @@ describe("createShutdown", () => {
     const order: string[] = [];
     const exit = vi.fn((code: number) => order.push(`exit:${code}`));
     const shutdown = createShutdown({
-      server: { close: (cb: () => void) => { order.push("server"); cb(); } },
+      server: {
+        close: (cb: () => void) => { order.push("server"); cb(); },
+        // Idle keep-alive sockets would otherwise hold close() for seconds
+        closeIdleConnections: () => order.push("idle"),
+      },
       closeDb: async () => { order.push("db"); },
       timeoutMs: 1000,
       exit,
       log: () => {},
     });
     await shutdown("SIGTERM");
-    expect(order).toEqual(["server", "db", "exit:0"]);
+    expect(order).toEqual(["server", "idle", "db", "exit:0"]);
   });
 
   it("forces exit 1 when closing hangs past the timeout", async () => {

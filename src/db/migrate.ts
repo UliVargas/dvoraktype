@@ -44,9 +44,10 @@ export async function runMigrations(
     // Don't wait forever behind an instance that is stuck holding the lock...
     await client`select set_config('lock_timeout', ${String(Math.trunc(lockTimeoutMs))}, false)`;
     await client`select pg_advisory_lock(${MIGRATION_LOCK_ID})`;
-    // ...but once it's ours, let the migrations wait for the table locks they
-    // need instead of aborting halfway through a deploy
-    await client`select set_config('lock_timeout', '0', false)`;
+    // ...and once it's ours, keep table-lock waits short: while an ALTER waits
+    // for its exclusive lock, other queries on that table queue behind it.
+    // A timed-out migration rolls back and is retried (55P03, src/server/retry.ts).
+    await client`select set_config('lock_timeout', '5s', false)`;
     await baselineIfNeeded(client, migrationsFolder);
     await migrate(drizzle(client), { migrationsFolder });
     await client`select pg_advisory_unlock(${MIGRATION_LOCK_ID})`;

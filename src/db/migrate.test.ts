@@ -59,8 +59,9 @@ describe.skipIf(!testDatabaseUrl)("runMigrations (Postgres)", () => {
       await db.unsafe(readFileSync(join(migrationsDir, file), "utf8").replaceAll("--> statement-breakpoint", ""));
     }
     await db`insert into users (id, created_at) values ('u1', '2026-01-02 03:04:05')`;
-    // A legacy row saved before validation existed, out of today's ranges
+    // Legacy rows saved before validation existed, out of today's ranges
     await db`insert into free_practice_stats (id, user_id, language, wpm, accuracy, duration) values (gen_random_uuid()::text, 'u1', 'es', 999, 150, 10)`;
+    await db`insert into lesson_progress (id, user_id, lesson_id, best_wpm, best_accuracy, attempts) values ('lp1', 'u1', 'leccion-00', 420, 120, 3)`;
     await db.end();
 
     await runMigrations(url, migrationsDir);
@@ -71,6 +72,18 @@ describe.skipIf(!testDatabaseUrl)("runMigrations (Postgres)", () => {
       expect((user.created_at as Date).toISOString()).toBe("2026-01-02T03:04:05.000Z");
       const [{ count }] = await after`select count(*)::int as count from free_practice_stats`;
       expect(count).toBe(1);
+
+      // Legacy values are clamped into range so later updates of those rows
+      // (best-of upserts keep the stored value) don't violate the checks
+      const [legacy] = await after`select best_wpm, best_accuracy from lesson_progress where id = 'lp1'`;
+      expect([legacy.best_wpm, legacy.best_accuracy]).toEqual([300, 100]);
+      await after`update lesson_progress set best_wpm = greatest(best_wpm, 55), attempts = attempts + 1 where id = 'lp1'`;
+      const [practice] = await after`select wpm, accuracy from free_practice_stats`;
+      expect([practice.wpm, practice.accuracy]).toEqual([300, 100]);
+
+      // The checks are fully validated, not just enforced for new rows
+      const unvalidated = await after`select conname from pg_constraint where contype = 'c' and not convalidated`;
+      expect(unvalidated).toEqual([]);
 
       // New rows must respect the ranges
       await expect(
