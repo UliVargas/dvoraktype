@@ -94,6 +94,8 @@ describe("lessons per layout", () => {
   });
 });
 
+const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
+
 describe("difficulty curve", () => {
   // Production data (2026-10-28): attempts per lesson climbed from 3 to 18.7 by
   // lesson 05 and half the learners stopped there; engaged learners' median
@@ -109,7 +111,7 @@ describe("difficulty curve", () => {
       const wpmStep = lesson.requiredWpm - previous.requiredWpm;
       const accuracyStep = lesson.requiredAccuracy - previous.requiredAccuracy;
       return wpmStep < 0 || wpmStep > 1 || accuracyStep < 0 || accuracyStep > 3
-        ? [`${lesson.id}: +${wpmStep} WPM, +${accuracyStep}%`]
+        ? [`${lesson.id}: ${signed(wpmStep)} WPM, ${signed(accuracyStep)}%`]
         : [];
     });
     expect(jumps).toEqual([]);
