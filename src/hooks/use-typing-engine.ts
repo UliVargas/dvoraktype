@@ -25,6 +25,7 @@ export const useTypingEngine = (props: UseTypingEngineProps) => {
   const state = useStore({
     ...createTypingSession(props.targetText),
     currentResetKey: props.resetKey,
+    currentTargetText: props.targetText,
   });
 
   const hiddenInputRef = useSignal<HTMLInputElement>();
@@ -34,9 +35,14 @@ export const useTypingEngine = (props: UseTypingEngineProps) => {
     const newResetKey = track(() => props.resetKey);
     const newTargetText = track(() => props.targetText);
 
-    if (newResetKey !== state.currentResetKey) {
+    // A new text restarts the session even when the caller keeps the same key
+    if (
+      newResetKey !== state.currentResetKey ||
+      newTargetText !== state.currentTargetText
+    ) {
       Object.assign(state, createTypingSession(newTargetText));
       state.currentResetKey = newResetKey;
+      state.currentTargetText = newTargetText;
       if (props.currentIndexSignal) props.currentIndexSignal.value = 0;
       isComposing.value = false;
     }
@@ -50,8 +56,9 @@ export const useTypingEngine = (props: UseTypingEngineProps) => {
     if (!input || !input.value) return;
     const text = input.value;
     input.value = "";
+    // Keystrokes after completion must not move the stats already reported
+    if (state.isFinished) return;
 
-    const wasFinished = state.isFinished;
     const now = Date.now();
     typeText(state, text, now);
     const stats = computeStats(state, now);
@@ -62,7 +69,7 @@ export const useTypingEngine = (props: UseTypingEngineProps) => {
     if (props.realTimeStatsSignal) {
       props.realTimeStatsSignal.value = stats;
     }
-    if (state.isFinished && !wasFinished) {
+    if (state.isFinished) {
       props.onComplete$(stats);
     }
   });

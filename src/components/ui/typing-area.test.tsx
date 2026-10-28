@@ -5,15 +5,20 @@ import type { TypingStats } from "../../data/types";
 import { TypingArea } from "./typing-area";
 
 // Renders TypingArea and exposes its progress in the DOM for assertions
-const Harness = component$<{ text: string }>(({ text }) => {
+const Harness = component$<{ text: string; nextText?: string }>(({ text, nextText }) => {
+  const target = useSignal(text);
   const index = useSignal(0);
   const completions = useSignal(0);
   const lastStats = useSignal<TypingStats | null>(null);
+  const liveStats = useSignal<TypingStats | null>(null);
   return (
     <div>
+      {/* Changes the text while keeping the same resetKey (undefined) */}
+      <button id="next" onClick$={() => (target.value = nextText ?? text)} />
       <TypingArea
-        targetText={text}
+        targetText={target.value}
         currentIndexSignal={index}
+        realTimeStatsSignal={liveStats}
         onComplete$={$((stats: TypingStats) => {
           completions.value++;
           lastStats.value = stats;
@@ -22,13 +27,15 @@ const Harness = component$<{ text: string }>(({ text }) => {
       <output id="index">{index.value}</output>
       <output id="completions">{completions.value}</output>
       <output id="correct">{lastStats.value?.correctChars ?? ""}</output>
+      <output id="live">{JSON.stringify(liveStats.value)}</output>
+      <output id="final">{JSON.stringify(lastStats.value)}</output>
     </div>
   );
 });
 
-async function setup(text: string) {
+async function setup(text: string, nextText?: string) {
   const { screen, render, userEvent } = await createDOM();
-  await render(<Harness text={text} />);
+  await render(<Harness text={text} nextText={nextText} />);
   const input = screen.querySelector("input") as HTMLInputElement;
   const read = (id: string) => screen.querySelector(`#${id}`)?.textContent;
   // Simulates what the browser does: the value lands in the input, then the event fires
@@ -70,6 +77,26 @@ describe("TypingArea input handling", () => {
     expect(read("index")).toBe("4");
     expect(read("completions")).toBe("1");
     expect(read("correct")).toBe("4");
+  });
+
+  it("keeps the live stats equal to the final stats after the text is finished", async () => {
+    const { read, type } = await setup("ab");
+    await type("ab");
+    const final = read("final");
+    expect(read("live")).toBe(final);
+
+    await new Promise((r) => setTimeout(r, 20));
+    await type("xyz");
+    expect(read("live")).toBe(final);
+    expect(read("completions")).toBe("1");
+  });
+
+  it("follows a new target text even when the reset key doesn't change", async () => {
+    const { read, type, userEvent } = await setup("ab", "cd");
+    await userEvent("#next", "click");
+    await type("cd");
+    expect(read("index")).toBe("2");
+    expect(read("completions")).toBe("1");
   });
 
   it("matches decomposed (NFD) input", async () => {
