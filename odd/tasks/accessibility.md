@@ -49,3 +49,13 @@ Branch: `fix/accessibility` · Delivery: ask-on-risk · Test runner: Vitest plus
   - R3-004: a behavioral `focusout` test, with relatedTarget inside the menu keeping it open and null closing it.
   - R3-001 and R3-003 (focus moves and the dialog Tab trap) cannot be tested in createDOM. A probe showed `focus()` leaves `activeElement` undefined in Qwik's test DOM, contrary to the review's assumption. They are left to the real-browser verifier.
   - Checks: 23 a11y tests and 127 unit tests pass; tsc and eslint are clean.
+- **L10** (2026-10-28): the real-browser verifier (Chromium CfT 1243 and WebKit 2359, baseline `73a74c0` vs `bb5cbb5`) found 3 blockers.
+  - B1: the focus ring never rendered, because the unlayered `.brutal-card` box-shadow overrides the `ring` utility.
+  - B2: saving a result reloads `useLessonState`, and the `useTask$` reset `resetKey`, so focus was pulled from the dialog to the hidden input and the announcement was wiped.
+  - B3: the Tab trap leaked or never wrapped, because Qwik handlers cannot cancel the default Tab.
+  Passing: S3 keyboard and mouse in Chromium and WebKit (slow clicks now work; at baseline the 150 ms timeout lost them), the underline, the status messages, aria-describedby, Escape, no layout shift, S5 and S6. axe-core reports no new violations; there are pre-existing color-contrast issues.
+- **L11** (2026-10-28): one correction batch in `dc11eb6`.
+  - B1: outline instead of ring, confirmed in the built CSS.
+  - B2: the reset is skipped while the dialog is open.
+  - B3: focusable sentinels.
+  Checks: 127 tests, tsc, eslint and build are clean. A single recheck limited to B1–B3 was requested from the same verifier.
