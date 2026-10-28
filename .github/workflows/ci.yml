@@ -99,5 +99,6 @@ jobs:
           fi
           curl -fsS -o /dev/null -w "GET / -> %{http_code}\n" http://localhost:3000/
           curl -fsS -o /dev/null -w "GET /sugerencias/ -> %{http_code}\n" http://localhost:3000/sugerencias/
+          curl -fsS -w " <- GET /health\n" http://localhost:3000/health
           # The image must run the Node version the repo pins
           test "$(docker exec app node -v)" = "v$(cat .node-version)"

@@ -27,6 +27,16 @@ COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 ################################################################################
+# Production dependencies only, for the final image.
+FROM base AS prod-deps
+
+USER node
+
+COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+RUN pnpm install --frozen-lockfile --prod
+
+################################################################################
 # Create a stage for building the application.
 FROM deps AS build
 
@@ -50,10 +60,14 @@ USER node
 # Copy the production dependencies from the deps stage and also
 # the built application from the build stage into the image.
 COPY --chown=node:node package.json .
-COPY --from=deps --chown=node:node /usr/src/app/node_modules ./node_modules
+COPY --from=prod-deps --chown=node:node /usr/src/app/node_modules ./node_modules
 COPY --from=build --chown=node:node /usr/src/app/dist ./dist
 COPY --from=build --chown=node:node /usr/src/app/server ./server
 COPY --from=build --chown=node:node /usr/src/app/drizzle ./drizzle
+
+# Container health: /health also checks the database
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD node -e "fetch('http://localhost:' + (process.env.PORT || 3000) + '/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
 
 # Expose the port that the application listens on.
 EXPOSE 3000

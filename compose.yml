@@ -10,6 +10,23 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d dvorak_db"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  # The production image, to test it end to end: docker compose up --build
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgres://admin:password@db:5432/dvorak_db
+      ORIGIN: http://localhost:3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
