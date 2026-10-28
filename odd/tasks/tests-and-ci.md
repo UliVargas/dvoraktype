@@ -41,3 +41,15 @@ Branch: `chore/tests-and-ci` · Delivery: ask-on-risk · Test runner: Vitest (to
   - R3-003: the guard checks `CI === "true"`.
   - R2-002: a comment says the two Postgres services must stay identical. YAML anchors were not used.
   - R3-004 accepted: T4 was reopened until a real Actions run passes.
+- **L7** (2026-10-28): independent verifier verdict on `b94eb13`: PASS with no blockers. It checked against primary docs and replays:
+  - `pnpm/action-setup@v6` reads `packageManager` and must run before `setup-node` with `cache: pnpm`, which is the order used.
+  - `node-version-file` is supported, and the service is reachable on `localhost:5432` (also with `--network host`).
+  - `load: true` with tags makes the image available locally, and the `gha` cache needs no extra permissions.
+  - The guard was confirmed for CI-only, local and both. The pnpm pin changes the image's pnpm from 12.16.1 to 12.10.1, matching the lockfile.
+  - A wrong DB password fails the boot step.
+- **L8** (2026-10-28): native review of the follow-ups (4 lenses, user consent `granted`, lineage `review-b2b667d16a27fba3`): approved and acknowledged. Fixed in `931a800`:
+  - R4/R3 concurrency: GitHub keeps one pending run per group, so the group is now per commit on main and per ref on PRs.
+  - R4-no-job-timeout: `timeout-minutes: 20` on both jobs.
+  - R2-boot-readiness-coupling: a comment points to `app.listen` in `src/entry.express.tsx`.
+  The YAML parses.
+- **L9** (2026-10-28, user): "haz merge y push cuando termine el verificador". T4 closes once the first GitHub Actions run on `main` passes.
