@@ -14,10 +14,8 @@ export const progressService = {
     });
   },
   async ensureUser(sessionId: string) {
-    const existing = await db.select().from(users).where(eq(users.id, sessionId));
-    if (existing.length === 0) {
-      await db.insert(users).values({ id: sessionId });
-    }
+    // Atomic upsert: route loaders run in parallel, so select-then-insert races on users_pkey.
+    await db.insert(users).values({ id: sessionId }).onConflictDoNothing({ target: users.id });
   },
 
   async getAllLessonProgress(sessionId: string) {
