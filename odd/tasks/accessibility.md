@@ -59,3 +59,12 @@ Branch: `fix/accessibility` · Delivery: ask-on-risk · Test runner: Vitest plus
   - B2: the reset is skipped while the dialog is open.
   - B3: focusable sentinels.
   Checks: 127 tests, tsc, eslint and build are clean. A single recheck limited to B1–B3 was requested from the same verifier.
+- **L12** (2026-10-28): native review of `dc11eb6` (lens: reliability, user consent `granted`, lineage `review-b6cea5bf10b0d7a9`): approved and acknowledged. Follow-ups in `1c0ba00`:
+  - R3-002: Arrow, Home and End no longer scroll the page; a `sync$` handler calls preventDefault.
+  - R3-003: selection closes the menu in `finally`.
+  - R3-001 (the reset guard's assumptions) is covered by the recheck below.
+- **L13** (2026-10-28): the browser recheck of `dc11eb6` (Chromium and WebKit) resolved all three blockers.
+  - B1: the outline is solid, 4 px, primary at 0.6, with a 2 px offset.
+  - B2: focus stays on the primary button and the "Ejercicio completado." status persists. Retry resets and refocuses the input. Enter on Completar/Siguiente advances leccion-00 → leccion-01 exercises 1 → 2 → 3 → leccion-02.
+  - B3: Tab and Shift+Tab wrap with 2 buttons and stay on Reintentar with 1. In WebKit, buttons are skipped by Tab (Safari default), but focus never leaves the dialog.
+  No new regressions. Still open: `og:image` (needs an asset) and manual screen-reader checks (VoiceOver/NVDA), both for the user.
