@@ -48,8 +48,9 @@ export default component$(() => {
     (progressData.value.completedCount / progressData.value.totalLessons) * 100,
   );
 
-  const currentLayout = getLayoutDefinition(layoutVariant.value).layout;
-  const layoutNotes = getLayoutDefinition(layoutVariant.value).config.notes;
+  const { layout: currentLayout, config } = getLayoutDefinition(layoutVariant.value);
+  // Same name as the layout selector, so the notes read as being about it
+  const layoutNotes = config.notes;
   const menuLabels = LAYOUT_VARIANT_IDS.map((id) => getLayoutDefinition(id).menuLabel);
   const layoutNames = `${menuLabels.slice(0, -1).join(", ")} o ${menuLabels.at(-1)}`;
 
