@@ -4,14 +4,14 @@ import type { DocumentHead } from "@builder.io/qwik-city";
 import { progressService } from "../../server/progress.service";
 import { feedbackLimiter } from "../../server/rate-limit";
 import { feedbackSchema, isHoneypotFilled } from "../../server/request-rules";
-import { ensureSessionId } from "../../server/session";
+import { ensureRequestSessionId } from "../../server/session";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { LuMessageSquare, LuSend } from "@qwikest/icons/lucide";
 
 export const useSubmitFeedback = routeAction$(
   async (data, requestEvent) => {
-    const sessionId = ensureSessionId(requestEvent.cookie);
+    const sessionId = ensureRequestSessionId(requestEvent);
 
     // Pretend success so bots don't learn to skip the hidden field
     if (isHoneypotFilled(data)) return { success: true };

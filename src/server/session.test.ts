@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   SESSION_COOKIE,
+  ensureRequestSessionId,
   ensureSessionId,
   getSessionId,
   isValidSessionId,
@@ -90,5 +91,22 @@ describe("ensureSessionId", () => {
     const id = ensureSessionId(cookie, false);
     expect(id).not.toBe("not-a-uuid");
     expect(isValidSessionId(id)).toBe(true);
+  });
+});
+
+describe("ensureRequestSessionId", () => {
+  it("issues a single session per request even when several loaders ask for one", () => {
+    // Layout and page loaders run in parallel on a first visit without a cookie
+    const cookie = fakeCookie();
+    const event = { cookie, sharedMap: new Map<string, unknown>() };
+    const fromLayout = ensureRequestSessionId(event);
+    const fromPage = ensureRequestSessionId(event);
+    expect(fromPage).toBe(fromLayout);
+    expect(cookie.sets).toHaveLength(1);
+  });
+
+  it("keeps an existing valid session", () => {
+    const event = { cookie: fakeCookie(validId), sharedMap: new Map<string, unknown>() };
+    expect(ensureRequestSessionId(event)).toBe(validId);
   });
 });

@@ -11,7 +11,7 @@ import { routeLoader$ } from "@builder.io/qwik-city";
 import { type LayoutVariant } from "../data/types";
 import { DEFAULT_LAYOUT, isLayoutVariant } from "../data/layout-registry";
 import { progressService } from "../server/progress.service";
-import { ensureSessionId } from "../server/session";
+import { ensureRequestSessionId } from "../server/session";
 
 import {
   LayoutVariantContext,
@@ -22,7 +22,7 @@ import { Header } from "../components/ui/header";
 import { Footer } from "../components/ui/footer";
 
 export const useLayoutVariantLoader = routeLoader$(async (requestEvent) => {
-  const sessionId = ensureSessionId(requestEvent.cookie);
+  const sessionId = ensureRequestSessionId(requestEvent);
 
   const settings = await progressService.getUserSettings(sessionId);
   // Stored values from removed variants fall back to the default layout

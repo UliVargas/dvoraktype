@@ -50,3 +50,22 @@ export function ensureSessionId(
   cookie.set(SESSION_COOKIE, sessionId, sessionCookieOptions(isProduction));
   return sessionId;
 }
+
+const REQUEST_SESSION_KEY = "sessionId";
+
+/**
+ * Like ensureSessionId, but once per request: on a first visit the layout and
+ * page loaders run in parallel, and each would otherwise mint its own id and
+ * create a user row for it. The first caller stores the id in the request's
+ * sharedMap; the others reuse it.
+ */
+export function ensureRequestSessionId(event: {
+  cookie: CookieJar;
+  sharedMap: Map<string, unknown>;
+}): string {
+  const existing = event.sharedMap.get(REQUEST_SESSION_KEY);
+  if (typeof existing === "string") return existing;
+  const sessionId = ensureSessionId(event.cookie);
+  event.sharedMap.set(REQUEST_SESSION_KEY, sessionId);
+  return sessionId;
+}

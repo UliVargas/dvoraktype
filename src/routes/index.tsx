@@ -2,7 +2,7 @@ import { component$ } from "@builder.io/qwik";
 import { routeLoader$, useNavigate, type DocumentHead } from "@builder.io/qwik-city";
 import { lessons } from "../data/lessons";
 import { progressService } from "../server/progress.service";
-import { ensureSessionId } from "../server/session";
+import { ensureRequestSessionId } from "../server/session";
 import { LessonCard } from "../components/ui/lesson-card";
 import { ProgressBar } from "../components/ui/progress-bar";
 import { Keyboard } from "../components/ui/keyboard";
@@ -10,7 +10,7 @@ import { getLayoutDefinition } from "../data/layout-registry";
 import { useLayoutVariant } from "../context/layout-context";
 
 export const useLessonsProgress = routeLoader$(async (requestEvent) => {
-  const sessionId = ensureSessionId(requestEvent.cookie);
+  const sessionId = ensureRequestSessionId(requestEvent);
 
   const allProgress = await progressService.getAllLessonProgress(sessionId);
 
