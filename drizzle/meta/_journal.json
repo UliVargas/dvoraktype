@@ -15,6 +15,13 @@
       "when": 1793195933111,
       "tag": "0001_ambitious_glorian",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793207470317,
+      "tag": "0002_harden_schema",
+      "breakpoints": true
     }
   ]
 }
