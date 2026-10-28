@@ -14,11 +14,21 @@ Branch: `refactor/layout-variant-registry` · Delivery: ask-on-risk · Test runn
 
 ## Tasks
 
-- [ ] T1 (S6): snapshot test of the target codes for every character in `src/data/lessons/es.ts`, under both variants, taken before the refactor. Route: inline.
-- [ ] T2 (S1, S2, S3): introduce the registry, move the composition maps out of `keyboard.tsx`, and replace the literal comparisons. Route: inline.
-- [ ] T3 (S4, S5): fix or remove the merged lookup map and the unused helpers. Route: inline.
+- [x] T1 (S6) `a2baf96`: snapshot test of the target codes for every character in `src/data/lessons/es.ts`, under both variants, taken before the refactor. Route: inline.
+- [x] T2 (S1, S2, S3) `a2baf96`: introduce the registry, move the composition maps out of `keyboard.tsx`, and replace the literal comparisons. Route: inline.
+- [x] T3 (S4, S5) `a2baf96`: fix or remove the merged lookup map and the unused helpers. Route: inline.
 
 ## Log
 
 - **L1** (2026-10-28, user): "Haz un analisis de las mejoras que puede tener este proyecto [...] Para eso aplcica una auditoría." Follow-up: "Dale, crea los .md de las cosas a corregir [...]"
 - **L2** (2026-10-28): this refactor is a prerequisite for latam-dvorak-variant.
+- **L3** (2026-10-28, user): "sigue con el #4"
+- **L4** (2026-10-28): implementation.
+  - Snapshot: `src/data/__fixtures__/legacy-key-codes.json` was generated from a verbatim copy of the pre-refactor `keyboard.tsx` logic (temporary generator, deleted afterwards). It covers 58 characters per variant from lessons, quotes and word lists.
+  - The snapshot shows US Intl highlights nothing for `ñ`, `¿` and `¡`. That gap stays as-is (S6) and belongs to latam-dvorak-variant S5–S6.
+  - The header selector maps over `LAYOUT_VARIANT_IDS` with the same labels ("Dvorak Español"/"Dvorak US Int." in the menu, and the layout name on the button).
+  - Unknown stored variants now fall back to the default layout. Before, the header ternary showed the US label.
+- **L5** (2026-10-28): evidence.
+  - RED: the registry module did not exist. GREEN: 79/79 with `TEST_DATABASE_URL`; tsc, eslint and build are clean. There are 0 variant string comparisons left in `.tsx` files.
+  - Built server: `/`, the lesson page and `/practica` render the label matching the stored variant before and after `POST /api/layout`, and an unknown stored value renders the default.
+  - Risk: none. No high-risk item applies, and the shared highlighting behavior is pinned by the snapshot.
