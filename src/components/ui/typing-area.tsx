@@ -42,7 +42,7 @@ export const TypingArea = component$<TypingAreaProps>((props) => {
 
   return (
     <div
-      class="brutal-card p-6 md:p-8 text-2xl md:text-3xl font-mono leading-relaxed tracking-wide focus:outline-none focus-within:ring-4 focus-within:ring-primary/50 relative cursor-text"
+      class="brutal-card p-6 md:p-8 text-2xl md:text-3xl font-mono leading-relaxed tracking-wide focus:outline-none focus-within:outline-4 focus-within:outline-primary/60 focus-within:outline-offset-2 relative cursor-text"
       onClick$={() => {
         engine.hiddenInputRef.value?.focus();
       }}

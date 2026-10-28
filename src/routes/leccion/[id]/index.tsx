@@ -90,6 +90,10 @@ export default component$(() => {
 
   useTask$(({ track }) => {
     const state = track(() => lessonState.value);
+    // Saving a result reloads the lesson state while the results dialog is
+    // open; resetting then would pull focus back to the typing area behind it.
+    // Retry and Next reset the exercise themselves when the dialog closes.
+    if (showResults.value) return;
     currentExerciseIndex.value = state.nextExerciseIndex;
     currentTypingIndex.value = 0;
     resetKey.value = Date.now().toString();

@@ -21,7 +21,8 @@ interface ResultsDialogProps {
 
 // Modal dialog (WAI-ARIA APG): focus moves into the dialog when it opens, Tab
 // stays inside it, and Escape retries the exercise, which closes the dialog and
-// returns focus to the typing area.
+// returns focus to the typing area. Async Qwik handlers can't cancel the
+// browser's Tab, so focusable sentinels at both ends send focus back around.
 export const ResultsDialog = component$<ResultsDialogProps>(
   ({ passed, stats, nextLabel, onRetry$, onNext$ }) => {
     const id = useId();
@@ -43,22 +44,18 @@ export const ResultsDialog = component$<ResultsDialogProps>(
           aria-modal="true"
           aria-labelledby={titleId}
           class="max-w-md w-full"
-          onKeyDown$={(event, dialog) => {
-            const e = event as KeyboardEvent;
-            if (e.key === "Escape") {
-              onRetry$();
-              return;
-            }
-            if (e.key !== "Tab") return;
-            // Keep focus inside the dialog
-            const focusable = [...dialog.querySelectorAll<HTMLElement>("button")];
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-            const active = dialog.ownerDocument.activeElement;
-            if (e.shiftKey && active === first) last?.focus();
-            else if (!e.shiftKey && active === last) first?.focus();
+          onKeyDown$={(event) => {
+            if ((event as KeyboardEvent).key === "Escape") onRetry$();
           }}
         >
+          <div
+            tabIndex={0}
+            data-focus-sentinel="start"
+            onFocus$={() => {
+              const buttons = dialogRef.value?.querySelectorAll<HTMLElement>("button");
+              buttons?.[buttons.length - 1]?.focus();
+            }}
+          />
           <Card class={`bg-surface ${!passed ? "animate-shake" : ""}`}>
             <div class="text-center mb-6">
               <div
@@ -110,6 +107,13 @@ export const ResultsDialog = component$<ResultsDialogProps>(
               )}
             </div>
           </Card>
+          <div
+            tabIndex={0}
+            data-focus-sentinel="end"
+            onFocus$={() => {
+              dialogRef.value?.querySelector<HTMLElement>("button")?.focus();
+            }}
+          />
         </div>
       </div>
     );
