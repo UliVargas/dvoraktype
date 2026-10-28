@@ -66,3 +66,7 @@ Acceptance: a crafted POST with `passed=true`, `wpm=NaN` or an unknown `lessonId
   - R3-001 is fixed. The action checks `exerciseBelongsToLesson` before saving and no longer catches errors (RED was observed for the new rule tests).
   - Checks: 33/33 tests with `TEST_DATABASE_URL`, and `tsc 6`, `eslint 10` and `pnpm build` are clean.
   - HTTP: an unknown exercise returns 400 and a valid save returns 200. With the DB stopped the action returns 500 and the error is logged; before, it returned 400 with nothing logged.
+- **L14** (2026-10-28): native review attempts after the rebase.
+  - The security update plus this feature together (lineage `review-0642b6af89d3296b`), then the security commit alone (`review-dbb505979d2548e8`), both with user consent `granted`. Both stopped with `lens_context_budget_exceeded`, which is terminal: no authority was created, and the generated pnpm-lock.yaml diff (about 3.4k lines) cannot be split meaningfully.
+  - Evidence for the security commit is therefore the independent verifier's PASS: a differential of 29 HTTP requests against the baseline image, a clean Docker build and `pnpm audit` 95 → 2.
+  - This feature's rebased range assessed `under_budget` (not due) and had an approved pre-rebase review. Fast-forward merged into `main`.
