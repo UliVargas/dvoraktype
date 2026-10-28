@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lessons } from "../data/lessons";
 import {
   evaluateExercise,
+  exerciseBelongsToLesson,
   exerciseResultSchema,
   freePracticeResultSchema,
   isLessonUnlocked,
@@ -49,6 +50,17 @@ describe("evaluateExercise", () => {
     expect(
       evaluateExercise(second.id, first.exercises[0].id, { wpm: 50, accuracy: 100 }),
     ).toBeNull();
+  });
+});
+
+describe("exerciseBelongsToLesson", () => {
+  it("accepts an exercise of the lesson", () => {
+    expect(exerciseBelongsToLesson(second.id, second.exercises[0].id)).toBe(true);
+  });
+
+  it("rejects unknown lessons and exercises of other lessons", () => {
+    expect(exerciseBelongsToLesson("nope", second.exercises[0].id)).toBe(false);
+    expect(exerciseBelongsToLesson(second.id, first.exercises[0].id)).toBe(false);
   });
 });
 

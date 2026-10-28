@@ -21,7 +21,10 @@ import {
 } from "@qwikest/icons/lucide";
 import { lessons } from "../../../data/lessons";
 import { progressService } from "../../../server/progress.service";
-import { exerciseResultSchema } from "../../../server/progress-rules";
+import {
+  exerciseBelongsToLesson,
+  exerciseResultSchema,
+} from "../../../server/progress-rules";
 import {
   esDvorakLayout,
   usDvorakIntlLayout,
@@ -64,16 +67,17 @@ export const useSaveExercise = routeAction$(
       return requestEvent.fail(403, { message: "Lesson is locked" });
     }
 
-    try {
-      await progressService.saveExerciseResult(
-        sessionId,
-        data.lessonId,
-        data.exerciseId,
-        { wpm: data.wpm, accuracy: data.accuracy },
-      );
-    } catch {
+    if (!exerciseBelongsToLesson(data.lessonId, data.exerciseId)) {
       return requestEvent.fail(400, { message: "Unknown lesson or exercise" });
     }
+
+    // Database failures propagate as 500s so they are logged, not mistaken for bad input
+    await progressService.saveExerciseResult(
+      sessionId,
+      data.lessonId,
+      data.exerciseId,
+      { wpm: data.wpm, accuracy: data.accuracy },
+    );
     return { success: true };
   },
   zod$(exerciseResultSchema),

@@ -51,6 +51,14 @@ export function evaluateExercise(
   };
 }
 
+export function exerciseBelongsToLesson(
+  lessonId: string,
+  exerciseId: string,
+): boolean {
+  const lesson = lessons.find((l) => l.id === lessonId);
+  return !!lesson?.exercises.some((e) => e.id === exerciseId);
+}
+
 /** The first lesson is always open; every other one needs the previous lesson completed. */
 export function isLessonUnlocked(
   lessonId: string,
