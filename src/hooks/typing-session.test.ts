@@ -36,13 +36,13 @@ describe("typeText", () => {
 
   it("matches decomposed (NFD) input against precomposed text", () => {
     const s = createTypingSession("á");
-    typeText(s, "á", 1000);
+    typeText(s, "a\u0301", 1000);
     expect(s.charStates).toEqual(["correct"]);
     expect(s.isFinished).toBe(true);
   });
 
   it("normalizes decomposed target text too", () => {
-    const s = createTypingSession("ñü");
+    const s = createTypingSession("ñu\u0308");
     expect(s.targetChars).toEqual(["ñ", "ü"]);
     typeText(s, "ñü", 1000);
     expect(s.isFinished).toBe(true);

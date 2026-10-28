@@ -71,6 +71,16 @@ describe("TypingArea input handling", () => {
     expect(read("completions")).toBe("1");
   });
 
+  it("types the composed text from compositionend when the input is already empty", async () => {
+    const { input, read, userEvent } = await setup("ü");
+    await userEvent(input, "compositionstart");
+    input.value = "";
+    await userEvent(input, "compositionend", { data: "ü" });
+    expect(read("index")).toBe("1");
+    await userEvent(input, "input");
+    expect(read("completions")).toBe("1");
+  });
+
   it("processes pasted text in order and completes exactly once", async () => {
     const { read, type } = await setup("hola");
     await type("hola mundo");
@@ -101,7 +111,7 @@ describe("TypingArea input handling", () => {
 
   it("matches decomposed (NFD) input", async () => {
     const { read, type } = await setup("ó");
-    await type("ó");
+    await type("o\u0301");
     expect(read("completions")).toBe("1");
   });
 });
