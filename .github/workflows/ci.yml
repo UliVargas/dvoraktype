@@ -9,14 +9,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  # Superseded PR runs are cancelled; every commit on main keeps its result
+  # PR runs share a group per branch so a new push cancels the superseded run.
+  # Pushes to main get a group per commit, so none of them is queued behind
+  # (and cancelled by) a later one: every commit on main gets its own result.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
     name: Lint, types, tests and build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Keep this service identical to the one in the docker job
     services:
       postgres:
@@ -49,6 +52,7 @@ jobs:
   docker:
     name: Docker image boots and serves
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Keep this service identical to the one in the check job
     services:
       postgres:
@@ -80,6 +84,8 @@ jobs:
             -e DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres \
             -e PORT=3000 \
             dvoraktype:ci
+          # "Server started" is logged by app.listen in src/entry.express.tsx,
+          # after migrations ran. Allow up to 60 s for migrations on a cold runner.
           booted=false
           for i in $(seq 1 60); do
             if docker logs app 2>&1 | grep -q "Server started"; then booted=true; break; fi
