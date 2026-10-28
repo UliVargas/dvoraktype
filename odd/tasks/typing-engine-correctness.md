@@ -39,3 +39,16 @@ Branch: `fix/typing-engine-correctness` · Delivery: ask-on-risk · Test runner:
   - R3-stale-target-chars: a new `targetText` restarts the session even with the same `resetKey`.
   - The first fix attempt silently did not apply, because a failing `grep -c` short-circuited the `&&` chain. It was re-run and confirmed by GREEN.
   - Checks: 103 unit tests pass (DB tests skipped, unaffected); tsc and eslint are clean.
+- **L6** (2026-10-28): real-Chromium verifier (CDP, baseline `8782735` vs candidate `f0d8530`): PASS with no blockers.
+  - S1: a pasted quote was scrambled at baseline (6 correct, 99 errors) and is processed in order now, completing once.
+  - S2: keydown `Dead` followed by `insertText "é"` was dropped at baseline and advances now. IME composition works on both, with no double processing.
+  - S3: NFD `insertText` was an error at baseline and is correct now.
+  - S4: the result screen (2 errors, 92% = 23/25) and saved rows match the baseline shape.
+  - S5: the lesson opens on the same exercise in every seeded state.
+  - S6 is NOT met at DOM level. A MutationObserver counted about 145 identical text writes per keystroke on a 177-character quote, the same as baseline. Dropping the array copy is not enough; per-character rendering is still pending.
+  Advisory: pasted WPM is rejected by the schema, so no row is saved (also at baseline). Real OS IME on macOS, Windows and Linux, and Safari/Firefox event order, still need manual checks.
+- **L7** (2026-10-28): native review of the full #6 (lens: reliability, user consent `granted`, lineage `review-96ebcdd86f4103e7`): approved and acknowledged. Fixed in `c6530cd`:
+  - R3-compositionend-data-fallback-untested: a new component test covers it. Mutation check: removing the fallback makes it fail.
+  - R3-nfd-literals-not-explicit: the tests held raw combining characters, not escapes. My earlier claim that they used escapes was wrong (a false-positive `grep -F` with a backslash). They are now `\u0301`/`\u0308` escapes, and both test files are verified NFC with precomposed targets.
+  - Checks: 104 unit tests pass; tsc and eslint are clean.
+- **L8** (2026-10-28, user): "haz merge y push cuando termine el verificador".
