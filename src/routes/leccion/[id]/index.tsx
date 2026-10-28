@@ -39,7 +39,7 @@ export const useLessonState = routeLoader$(async (requestEvent) => {
   // With the database down nothing can be saved anyway (the action reports it),
   // so the page degrades to an unlocked lesson starting at its first exercise
   const unlocked = await withFallback(
-    progressService.isLessonUnlocked(sessionId, lessonId),
+    () => progressService.isLessonUnlocked(sessionId, lessonId),
     true,
     "Checking the lesson lock",
   );
@@ -47,7 +47,7 @@ export const useLessonState = routeLoader$(async (requestEvent) => {
     throw requestEvent.redirect(302, "/");
   }
   return await withFallback(
-    progressService.getLessonState(sessionId, lessonId),
+    () => progressService.getLessonState(sessionId, lessonId),
     { nextExerciseIndex: 0, completedExercises: [] as string[], isComplete: false },
     "Loading the lesson state",
   );
@@ -67,16 +67,15 @@ export const useSaveExercise = routeAction$(
     const sessionId = getSessionId(requestEvent.cookie);
     if (!sessionId) return { success: false };
 
-    if (!exerciseBelongsToLesson(data.lessonId, data.exerciseId)) {
-      return requestEvent.fail(400, { message: "Unknown lesson or exercise" });
-    }
-
     // Database failures are logged and returned as a JSON 503: a thrown error
     // becomes an HTML 500 that Qwik's client handles by navigating away, so
     // the page could never tell the user the result wasn't saved.
     try {
       if (!(await progressService.isLessonUnlocked(sessionId, data.lessonId))) {
         return requestEvent.fail(403, { message: "Lesson is locked" });
+      }
+      if (!exerciseBelongsToLesson(data.lessonId, data.exerciseId)) {
+        return requestEvent.fail(400, { message: "Unknown lesson or exercise" });
       }
       await progressService.saveExerciseResult(
         sessionId,

@@ -26,7 +26,7 @@ export const useLayoutVariantLoader = routeLoader$(async (requestEvent) => {
   const sessionId = ensureRequestSessionId(requestEvent);
 
   const settings = await withFallback(
-    progressService.getUserSettings(sessionId),
+    () => progressService.getUserSettings(sessionId),
     { layoutVariant: DEFAULT_LAYOUT },
     "Loading layout settings",
   );

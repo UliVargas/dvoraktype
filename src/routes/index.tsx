@@ -14,7 +14,7 @@ export const useLessonsProgress = routeLoader$(async (requestEvent) => {
   const sessionId = ensureRequestSessionId(requestEvent);
 
   const allProgress = await withFallback(
-    progressService.getAllLessonProgress(sessionId),
+    () => progressService.getAllLessonProgress(sessionId),
     {},
     "Loading lesson progress",
   );

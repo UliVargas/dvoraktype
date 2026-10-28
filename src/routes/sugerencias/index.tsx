@@ -16,8 +16,16 @@ export const useSubmitFeedback = routeAction$(
     // Pretend success so bots don't learn to skip the hidden field
     if (isHoneypotFilled(data)) return { success: true };
 
+    const limitKeys = [`ip:${requestEvent.clientConn.ip}`, `session:${sessionId}`];
+    if (!feedbackLimiter.takeAll(limitKeys)) {
+      return requestEvent.fail(429, {
+        message: "Has enviado demasiados mensajes. Inténtalo de nuevo más tarde.",
+      });
+    }
+
     // TEMPORARY (2026-10-28): find out which X-Forwarded-For entry Railway's
     // edge leaves for the client, to confirm TRUSTED_PROXY_HOPS. Remove once known.
+    // Logged after the rate limit, so at most 5 lines per client and hour.
     console.log(
       "[ip-diagnostic]",
       JSON.stringify({
@@ -26,13 +34,6 @@ export const useSubmitFeedback = routeAction$(
         chosenIp: requestEvent.clientConn.ip,
       }),
     );
-
-    const limitKeys = [`ip:${requestEvent.clientConn.ip}`, `session:${sessionId}`];
-    if (!feedbackLimiter.takeAll(limitKeys)) {
-      return requestEvent.fail(429, {
-        message: "Has enviado demasiados mensajes. Inténtalo de nuevo más tarde.",
-      });
-    }
 
     try {
       await progressService.submitFeedback(sessionId, data.type, data.message);
