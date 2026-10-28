@@ -62,6 +62,9 @@ await retryWithBackoff(() => runMigrations(connectionString, migrationsDir), {
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
 
+// Proxies in front of the app that append to X-Forwarded-For (Railway's edge: 1)
+const TRUSTED_PROXY_HOPS = Number(process.env.TRUSTED_PROXY_HOPS ?? 1);
+
 // Create the Qwik City Node middleware
 const { router, notFound } = createQwikCity({
   render,
@@ -69,7 +72,11 @@ const { router, notFound } = createQwikCity({
   getOrigin: (req) =>
     resolveOrigin((name) => headerValue(req.headers[name]), process.env.ORIGIN),
   getClientConn: (req) => ({
-    ip: clientIp(headerValue(req.headers["x-forwarded-for"]), req.socket.remoteAddress),
+    ip: clientIp(
+      headerValue(req.headers["x-forwarded-for"]),
+      req.socket.remoteAddress,
+      TRUSTED_PROXY_HOPS,
+    ),
   }),
 });
 

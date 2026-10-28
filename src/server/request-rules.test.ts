@@ -93,12 +93,27 @@ describe("resolveOrigin", () => {
 });
 
 describe("clientIp", () => {
-  it("uses the first X-Forwarded-For entry", () => {
-    expect(clientIp("203.0.113.7, 100.64.0.2", "100.64.0.2")).toBe("203.0.113.7");
+  it("uses the entry added by the trusted proxy, not one the client sent", () => {
+    // The client spoofed 1.2.3.4; the edge appended the address it saw
+    expect(clientIp("1.2.3.4, 203.0.113.7", "100.64.0.2", 1)).toBe("203.0.113.7");
+    // An edge that overwrites the header leaves a single entry
+    expect(clientIp("203.0.113.7", "100.64.0.2", 1)).toBe("203.0.113.7");
+  });
+
+  it("walks back one entry per trusted proxy", () => {
+    expect(clientIp("1.2.3.4, 203.0.113.7, 10.0.0.1", "10.0.0.2", 2)).toBe("203.0.113.7");
+  });
+
+  it("ignores the header when no proxy is trusted", () => {
+    expect(clientIp("1.2.3.4", "127.0.0.1", 0)).toBe("127.0.0.1");
+  });
+
+  it("falls back to the socket address when the header is shorter than the trusted chain", () => {
+    expect(clientIp("203.0.113.7", "10.0.0.2", 2)).toBe("10.0.0.2");
   });
 
   it("falls back to the socket address", () => {
-    expect(clientIp(undefined, "127.0.0.1")).toBe("127.0.0.1");
-    expect(clientIp("", "127.0.0.1")).toBe("127.0.0.1");
+    expect(clientIp(undefined, "127.0.0.1", 1)).toBe("127.0.0.1");
+    expect(clientIp("", "127.0.0.1", 1)).toBe("127.0.0.1");
   });
 });

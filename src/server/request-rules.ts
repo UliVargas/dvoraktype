@@ -69,13 +69,24 @@ export function resolveOrigin(
 }
 
 /**
- * Best-effort client IP for rate limiting. Railway's edge overwrites
- * X-Forwarded-For, putting the client first; without a proxy the socket
+ * Client IP for rate limiting. Each trusted proxy appends the address it saw
+ * to X-Forwarded-For, so the client's address is `trustedHops` entries from the
+ * end; anything before it may have been sent by the client itself. Railway's
+ * edge is one hop (whether it appends to or overwrites the header). With no
+ * trusted proxies, or a header shorter than the trusted chain, the socket
  * address is used.
  */
 export function clientIp(
   forwardedFor: string | undefined,
   socketAddress: string | undefined,
+  trustedHops: number,
 ): string {
-  return firstValue(forwardedFor) ?? socketAddress ?? "unknown";
+  const entries = (forwardedFor ?? "")
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+  if (trustedHops > 0 && entries.length >= trustedHops) {
+    return entries[entries.length - trustedHops];
+  }
+  return socketAddress ?? "unknown";
 }

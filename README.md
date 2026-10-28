@@ -81,6 +81,7 @@ El esquema vive en `src/db/schema.ts` y las migraciones versionadas en `drizzle/
 | `DATABASE_URL` | Sí, en producción | Conexión a PostgreSQL. |
 | `ORIGIN` | No | Origen público para la protección CSRF (por ejemplo `https://dvoraktype.com`). Si no se define, se deriva de `X-Forwarded-Proto` y `X-Forwarded-Host`, que es lo que envía el proxy de Railway. |
 | `PORT` | No | Puerto HTTP (por defecto `3000`). |
+| `TRUSTED_PROXY_HOPS` | No | Proxies de confianza delante de la app que añaden su entrada a `X-Forwarded-For` (por defecto `1`, el edge de Railway). La IP del cliente para el límite de envíos se toma de esa posición contando desde el final; `0` usa la dirección del socket. |
 
 ### Producción y Docker
 
