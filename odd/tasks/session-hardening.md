@@ -50,3 +50,7 @@ Branch: `fix/session-hardening` · Delivery: ask-on-risk · Test runner: Vitest
   - The first visit creates 2 user rows because the parallel loaders each mint an id (pre-existing).
   - A password manager could autofill the honeypot.
   - The feedback action has no integration test.
+- **L10** (2026-10-28): native review of the merged #3 including the rate limit fix (lens: reliability, user consent `granted`, lineage `review-dfa5db319282e9af`): approved and acknowledged. New informational findings:
+  - R3-release-window-rollover: `release` can refund an attempt into a newer window after the old one expired, slightly over-granting quota.
+  - R3-origin-derivation-host-fallback: a proxy that omits the `X-Forwarded-*` headers would make forms return 403. Mitigation: set `ORIGIN`.
+  Already listed in L9: XFF spoofing, Secure cookie over plain http, and the untested action wiring.
