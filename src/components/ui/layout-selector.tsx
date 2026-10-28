@@ -135,7 +135,7 @@ export const LayoutSelector = component$<LayoutSelectorProps>(
                 tabIndex={current === variant ? 0 : -1}
                 // Keep focus where it is on mouse down so the click lands
                 preventdefault:mousedown
-                class={`text-left px-3 py-2.5 text-sm font-bold hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary transition-colors border-t-2 border-border/20 first:border-t-0 ${current === variant ? "bg-primary text-primary-foreground hover:bg-primary-dark" : "text-surface-dark"}`}
+                class={`text-left px-3 py-2.5 text-sm font-bold hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary transition-colors border-t-2 border-border/20 first:border-t-0 ${current === variant ? "bg-primary text-primary-foreground hover:bg-primary-light" : "text-surface-dark"}`}
                 onClick$={async () => {
                   try {
                     await onSelect$(variant);

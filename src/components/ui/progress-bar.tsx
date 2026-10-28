@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$, useId } from "@builder.io/qwik";
 
 export interface ProgressBarProps {
   value: number;
@@ -9,6 +9,8 @@ export interface ProgressBarProps {
 export const ProgressBar = component$<ProgressBarProps>((props) => {
   const { value, label, colorClass = "bg-primary" } = props;
   const clamped = Math.max(0, Math.min(100, value));
+  const id = useId();
+  const labelId = `${id}-label`;
 
   return (
     <div>
@@ -23,9 +25,15 @@ export const ProgressBar = component$<ProgressBarProps>((props) => {
           aria-valuenow={clamped}
           aria-valuemin={0}
           aria-valuemax={100}
+          aria-labelledby={label ? labelId : undefined}
+          aria-label={label ? undefined : "Progreso"}
         />
       </div>
-      {label && <p class="mt-1 text-sm text-surface-dark/70">{label}</p>}
+      {label && (
+        <p id={labelId} class="mt-1 text-sm text-surface-dark/70">
+          {label}
+        </p>
+      )}
     </div>
   );
 });

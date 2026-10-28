@@ -3,6 +3,8 @@ import { QwikCityProvider, RouterOutlet } from "@builder.io/qwik-city";
 import { RouterHead } from "./components/router-head/router-head";
 
 import "./global.css";
+import interUrl from "./assets/fonts/inter-latin.woff2?url";
+import monoUrl from "./assets/fonts/jetbrains-mono-latin.woff2?url";
 
 export default component$(() => {
   return (
@@ -15,12 +17,9 @@ export default component$(() => {
             href={`${import.meta.env.BASE_URL}manifest.json`}
           />
         )}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        {/* Fetched with the HTML instead of after the stylesheet */}
+        <link rel="preload" href={interUrl} as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href={monoUrl} as="font" type="font/woff2" crossOrigin="anonymous" />
         <script
           dangerouslySetInnerHTML={`
             (function() {

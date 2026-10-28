@@ -67,9 +67,9 @@ export const Keycap = component$<KeycapProps>((props) => {
         isStructural && !isPressed ? "text-surface-dark/50" : "",
 
         isCorrect
-          ? "bg-state-correct animate-key-press text-primary-foreground"
+          ? "bg-state-correct animate-key-press text-white"
           : isError
-            ? "bg-state-error text-primary-foreground animate-shake"
+            ? "bg-state-error text-white animate-shake"
             : isActive
               ? `bg-surface-card shadow-brutal-sm scale-105 border-b-4 ${fingerBorderMap[finger]}`
               : `${isStructural ? "bg-surface-muted/50" : "bg-surface-card"} border-b-4 ${fingerBorderMap[finger]}`,

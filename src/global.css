@@ -1,7 +1,24 @@
 /* ========================================
-   Google Fonts — Inter + JetBrains Mono
+   Fuentes — Inter + JetBrains Mono (OFL, ver assets/fonts)
+   Servidas desde el propio sitio: un @import a Google Fonts encadenaba
+   tres descargas antes del primer pintado. Solo el subconjunto latino,
+   que cubre el español (ñ, acentos, ¿ ¡, « »).
    ======================================== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("./assets/fonts/inter-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
+}
 
 @import "tailwindcss";
 
@@ -12,7 +29,8 @@
   --primary: oklch(67.47% 0.1725 259.61);
   --primary-light: oklch(80% 0.12 259.61);
   --primary-dark: oklch(50% 0.15 259.61);
-  --primary-foreground: #ffffff;
+  /* Texto oscuro sobre el azul: el blanco solo llega a 3:1 (WCAG pide 4.5:1) */
+  --primary-foreground: #1a1a1a;
 
   --surface: #f5f0eb;
   --surface-card: #ffffff;
@@ -40,11 +58,12 @@
 }
 
 .dark {
-  /* Primario igual o más profundo que en modo claro */
-  --primary: oklch(60% 0.1725 259.61);
-  --primary-light: oklch(70% 0.15 259.61);
+  /* Primario más claro que en modo claro: contrasta como texto sobre el
+     fondo oscuro y como fondo bajo texto oscuro (ambos > 6:1) */
+  --primary: oklch(70% 0.1725 259.61);
+  --primary-light: oklch(80% 0.12 259.61);
   --primary-dark: oklch(45% 0.15 259.61);
-  --primary-foreground: #ffffff;
+  --primary-foreground: #1a1a1a;
 
   /* Fondos oscuros */
   --surface: #0f0f12;
