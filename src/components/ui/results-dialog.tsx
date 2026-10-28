@@ -15,6 +15,8 @@ interface ResultsDialogProps {
   passed: boolean;
   stats: TypingStats;
   nextLabel: string;
+  /** Set when saving the result failed, so the user knows it wasn't kept */
+  saveError?: string;
   onRetry$: QRL<() => void>;
   onNext$: QRL<() => void>;
 }
@@ -24,7 +26,7 @@ interface ResultsDialogProps {
 // returns focus to the typing area. Async Qwik handlers can't cancel the
 // browser's Tab, so focusable sentinels at both ends send focus back around.
 export const ResultsDialog = component$<ResultsDialogProps>(
-  ({ passed, stats, nextLabel, onRetry$, onNext$ }) => {
+  ({ passed, stats, nextLabel, saveError, onRetry$, onNext$ }) => {
     const id = useId();
     const titleId = `${id}-title`;
     const dialogRef = useSignal<HTMLDivElement>();
@@ -77,6 +79,15 @@ export const ResultsDialog = component$<ResultsDialogProps>(
                   : "Sigue practicando para alcanzar la velocidad y precisión requerida."}
               </p>
             </div>
+
+            {saveError && (
+              <p
+                role="alert"
+                class="mb-4 border-2 border-border rounded-brutal-sm bg-state-warning p-3 font-bold text-surface-dark"
+              >
+                {saveError}
+              </p>
+            )}
 
             <StatsBar
               wpm={stats.wpm}

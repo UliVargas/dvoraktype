@@ -117,7 +117,7 @@ const stats: TypingStats = {
   wpm: 30, accuracy: 95, correctChars: 19, errorChars: 1, totalChars: 19, totalKeystrokes: 20, elapsedTime: 8000,
 };
 
-const DialogHarness = component$<{ passed: boolean }>(({ passed }) => {
+const DialogHarness = component$<{ passed: boolean; saveError?: string }>(({ passed, saveError }) => {
   const retries = useSignal(0);
   return (
     <div>
@@ -125,6 +125,7 @@ const DialogHarness = component$<{ passed: boolean }>(({ passed }) => {
         passed={passed}
         stats={stats}
         nextLabel="Siguiente"
+        saveError={saveError}
         onRetry$={$(() => { retries.value++; })}
         onNext$={$(() => {})}
       />
@@ -141,6 +142,18 @@ describe("ResultsDialog", () => {
     expect(dialog?.getAttribute("aria-modal")).toBe("true");
     const title = screen.querySelector(`[id="${dialog?.getAttribute("aria-labelledby")}"]`);
     expect(title?.textContent).toBe("¡Excelente!");
+  });
+
+  it("tells the user when the result couldn't be saved", async () => {
+    const { screen, render } = await createDOM();
+    await render(<DialogHarness passed={true} saveError="No pudimos guardar tu resultado." />);
+    expect(screen.querySelector('[role="alert"]')?.textContent).toContain("No pudimos guardar tu resultado.");
+  });
+
+  it("shows no alert when saving worked", async () => {
+    const { screen, render } = await createDOM();
+    await render(<DialogHarness passed={true} />);
+    expect(screen.querySelector('[role="alert"]')).toBeFalsy();
   });
 
   it("retries on Escape", async () => {

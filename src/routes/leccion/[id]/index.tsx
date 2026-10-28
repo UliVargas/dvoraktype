@@ -26,6 +26,7 @@ import { type TypingStats } from "../../../data/types";
 import { TypingArea } from "../../../components/ui/typing-area";
 import { Keyboard } from "../../../components/ui/keyboard";
 import { ResultsDialog } from "../../../components/ui/results-dialog";
+import { saveErrorOf } from "../../../components/ui/save-result";
 import { useLayoutVariant } from "../../../context/layout-context";
 
 export const useLessonState = routeLoader$(async (requestEvent) => {
@@ -85,6 +86,7 @@ export default component$(() => {
   const currentExerciseIndex = useSignal(lessonState.value.nextExerciseIndex);
   const currentStats = useSignal<TypingStats | null>(null);
   const showResults = useSignal(false);
+  const saveError = useSignal<string | undefined>(undefined);
   const resetKey = useSignal(Date.now().toString());
   const currentTypingIndex = useSignal(0);
 
@@ -103,7 +105,7 @@ export default component$(() => {
     return lessonData.value.exercises[currentExerciseIndex.value];
   });
 
-  const handleComplete = $((stats: TypingStats) => {
+  const handleComplete = $(async (stats: TypingStats) => {
     const lesson = lessonData.value;
     if (!currentExercise.value) return;
 
@@ -133,12 +135,15 @@ export default component$(() => {
       });
     }
 
-    saveAction.submit({
-      lessonId: lesson.id,
-      exerciseId: currentExercise.value.id,
-      wpm: stats.wpm,
-      accuracy: stats.accuracy,
-    });
+    saveError.value = undefined;
+    saveError.value = await saveErrorOf(
+      saveAction.submit({
+        lessonId: lesson.id,
+        exerciseId: currentExercise.value.id,
+        wpm: stats.wpm,
+        accuracy: stats.accuracy,
+      }),
+    );
   });
 
   const handleNext = $(() => {
@@ -229,6 +234,7 @@ export default component$(() => {
               ? "Siguiente"
               : "Completar"
           }
+          saveError={saveError.value}
           onRetry$={handleRetry}
           onNext$={handleNext}
         />

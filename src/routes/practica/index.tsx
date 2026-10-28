@@ -9,6 +9,7 @@ import { getLayoutDefinition } from "../../data/layout-registry";
 import { getRandomQuote, type Quote } from "../../data/quotes";
 import { progressService } from "../../server/progress.service";
 import { getSessionId } from "../../server/session";
+import { saveErrorOf } from "../../components/ui/save-result";
 import { freePracticeResultSchema } from "../../server/progress-rules";
 import { useLayoutVariant } from "../../context/layout-context";
 
@@ -26,6 +27,7 @@ export const useSaveFreePractice = routeAction$(
 
 export default component$(() => {
   const saveAction = useSaveFreePractice();
+  const saveError = useSignal<string | undefined>(undefined);
   const layoutVariant = useLayoutVariant();
 
   const currentQuote = useSignal<Quote>(getRandomQuote("es"));
@@ -37,8 +39,8 @@ export default component$(() => {
     () => getLayoutDefinition(layoutVariant.value).layout,
   );
 
-  const handleComplete = $((stats: TypingStats) => {
-    saveAction.submit({
+  const handleComplete = $(async (stats: TypingStats) => {
+    const submitted = saveAction.submit({
       wpm: stats.wpm,
       accuracy: stats.accuracy,
       elapsedTime: stats.elapsedTime,
@@ -47,6 +49,9 @@ export default component$(() => {
     currentQuote.value = getRandomQuote("es");
     currentTypingIndex.value = 0;
     resetKey.value = Date.now().toString();
+
+    // Tell the user if the finished quote's result wasn't saved
+    saveError.value = await saveErrorOf(submitted);
   });
 
   return (
@@ -93,6 +98,14 @@ export default component$(() => {
           errors={currentStats.value?.errorChars || 0}
           elapsed={currentStats.value?.elapsedTime || 0}
         />
+        {saveError.value && (
+          <p
+            role="alert"
+            class="mt-4 border-2 border-border rounded-brutal-sm bg-state-warning p-3 font-bold text-surface-dark"
+          >
+            {saveError.value}
+          </p>
+        )}
       </div>
 
       <div class="mt-8 transition-opacity duration-300 opacity-100">
