@@ -9,7 +9,7 @@
 
 - **Diseño Neobrutalista**: Interfaz moderna, limpia y rápida, libre de distracciones.
 - **Motor de Tipeo Avanzado**: Cálculo en tiempo real de Palabras por Minuto (WPM), precisión y detección fluida de teclas muertas (acentos `´`, diéresis `¨`).
-- **Dos Layouts Soportados**: 
+- **Tres Layouts Soportados**: 
   - `Dvorak Español (XKB)`: Basado en la distribución de Linux. Esta variante se utiliza como estándar actual, ¡pero próximamente se añadirán las variantes exactas nativas de Windows y macOS!
   - `Dvorak US Internacional`: Para quienes usan el layout americano pero necesitan tipear en español usando teclas muertas.
   - `Dvorak Latinoamérica (XKB)`: La variante latinoamericana de Linux. Las letras son las mismas que en el Dvorak español; cambia la puntuación: `¿` y `¡` junto al 0, y los acentos (`´`) y la diéresis (`¨`) como teclas muertas a la derecha de la L.
@@ -35,8 +35,8 @@ Asegúrate de tener Node.js (v24+) y `pnpm` instalados en tu sistema.
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/ulivargas/typing-test.git
-   cd typing-test
+   git clone https://github.com/UliVargas/dvoraktype.git
+   cd dvoraktype
    ```
 
 2. Instala las dependencias:
@@ -44,12 +44,10 @@ Asegúrate de tener Node.js (v24+) y `pnpm` instalados en tu sistema.
    pnpm install
    ```
 
-3. Levanta PostgreSQL con Docker Compose y configura `DATABASE_URL` en un archivo `.env` en la raíz del proyecto:
+3. Levanta PostgreSQL con Docker Compose y crea tu `.env` a partir del ejemplo (ya apunta a esa base de datos):
    ```bash
    docker compose up -d db
-   ```
-   ```env
-   DATABASE_URL="postgres://admin:password@localhost:5432/dvorak_db"
+   cp .env.example .env
    ```
 
 4. Aplica las migraciones a la base de datos local:
@@ -83,6 +81,22 @@ El esquema vive en `src/db/schema.ts` y las migraciones versionadas en `drizzle/
 | `DATABASE_URL` | Sí, en producción | Conexión a PostgreSQL. |
 | `ORIGIN` | No | Origen público para la protección CSRF (por ejemplo `https://dvoraktype.com`). Si no se define, se deriva de `X-Forwarded-Proto` y `X-Forwarded-Host`, que es lo que envía el proxy de Railway. |
 | `PORT` | No | Puerto HTTP (por defecto `3000`). |
+
+### Producción y Docker
+
+- La imagen (`Dockerfile`) solo incluye dependencias de producción y arranca con `node server/entry.express`.
+- `GET /health` responde `200` si la base de datos contesta y `503` si no (con un límite de 2 s). La imagen lo usa como `HEALTHCHECK`; en Railway puedes configurarlo como health check path.
+- Al arrancar, el servidor reintenta durante ~1 minuto si la base de datos aún no está disponible, y aplica las migraciones antes de aceptar tráfico.
+- Ante `SIGTERM` (por ejemplo, en un deploy) deja de aceptar conexiones, termina las peticiones en curso y cierra la conexión a la base de datos.
+- Para probar la imagen de producción en local: `docker compose up --build` (sirve en `http://localhost:3000`).
+
+### Tests
+
+```bash
+pnpm test   # unitarios y de componentes
+```
+
+Los tests de base de datos se ejecutan si defines `TEST_DATABASE_URL` (por ejemplo, un Postgres desechable con Docker); en CI siempre se ejecutan.
 
 ## 🤝 Contribuciones
 

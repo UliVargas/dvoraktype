@@ -1,6 +1,6 @@
 {
   "name": "dvorak-type",
-  "description": "Blank project with routing included",
+  "description": "Dvorak typing tutor for Spanish speakers, built with Qwik City, Express and PostgreSQL.",
   "engines": {
     "node": ">=24.22.1"
   },
@@ -14,7 +14,6 @@
     "build.preview": "vite build --ssr src/entry.preview.tsx",
     "build.server": "qwik check-client src dist && vite build -c adapters/express/vite.config.ts",
     "build.types": "tsc --incremental --noEmit",
-    "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "db:generate": "drizzle-kit generate",
