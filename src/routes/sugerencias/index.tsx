@@ -16,9 +16,8 @@ export const useSubmitFeedback = routeAction$(
     // Pretend success so bots don't learn to skip the hidden field
     if (isHoneypotFilled(data)) return { success: true };
 
-    const allowedForIp = feedbackLimiter.take(`ip:${requestEvent.clientConn.ip}`);
-    const allowedForSession = feedbackLimiter.take(`session:${sessionId}`);
-    if (!allowedForIp || !allowedForSession) {
+    const limitKeys = [`ip:${requestEvent.clientConn.ip}`, `session:${sessionId}`];
+    if (!feedbackLimiter.takeAll(limitKeys)) {
       return requestEvent.fail(429, {
         message: "Has enviado demasiados mensajes. Inténtalo de nuevo más tarde.",
       });
@@ -28,6 +27,8 @@ export const useSubmitFeedback = routeAction$(
       await progressService.submitFeedback(sessionId, data.type, data.message);
       return { success: true };
     } catch {
+      // A failed save shouldn't count against the visitor's quota
+      feedbackLimiter.release(limitKeys);
       return requestEvent.fail(500, {
         message: "Hubo un error al enviar tu sugerencia.",
       });

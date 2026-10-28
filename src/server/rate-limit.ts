@@ -37,6 +37,30 @@ export function createRateLimiter({
       w.count++;
       return true;
     },
+    /**
+     * Records an attempt for every key, or for none of them when any key is
+     * over its limit, so one exhausted key never burns another key's quota.
+     */
+    takeAll(keys: readonly string[]): boolean {
+      const time = now();
+      prune(time);
+      if (keys.some((key) => (windows.get(key)?.count ?? 0) >= limit)) {
+        return false;
+      }
+      for (const key of keys) {
+        const w = windows.get(key);
+        if (w) w.count++;
+        else windows.set(key, { start: time, count: 1 });
+      }
+      return true;
+    },
+    /** Gives back attempts that were recorded but did not complete. */
+    release(keys: readonly string[]) {
+      for (const key of keys) {
+        const w = windows.get(key);
+        if (w && w.count > 0) w.count--;
+      }
+    },
     size: () => windows.size,
   };
 }

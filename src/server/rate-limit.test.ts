@@ -41,6 +41,22 @@ describe("createRateLimiter", () => {
     expect(limiter.take("a")).toBe(true);
   });
 
+  it("takeAll consumes every key only when all of them are under the limit", () => {
+    const limiter = createRateLimiter({ limit: 1, windowMs: 1000, now: clock().now });
+    expect(limiter.takeAll(["ip:1", "session:a"])).toBe(true);
+
+    // The session is exhausted: the new IP must not lose quota for that denial
+    expect(limiter.takeAll(["ip:2", "session:a"])).toBe(false);
+    expect(limiter.takeAll(["ip:2", "session:b"])).toBe(true);
+  });
+
+  it("release refunds attempts that did not complete", () => {
+    const limiter = createRateLimiter({ limit: 1, windowMs: 1000, now: clock().now });
+    limiter.takeAll(["ip:1", "session:a"]);
+    limiter.release(["ip:1", "session:a"]);
+    expect(limiter.takeAll(["ip:1", "session:a"])).toBe(true);
+  });
+
   it("forgets expired keys so memory stays bounded", () => {
     const c = clock();
     const limiter = createRateLimiter({ limit: 1, windowMs: 1000, now: c.now });
