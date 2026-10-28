@@ -51,6 +51,15 @@ describe("LayoutSelector (menu button pattern)", () => {
     expect(items.map((i) => i.getAttribute("aria-checked"))).toEqual(["true", "false", "false"]);
   });
 
+  it("keeps a mouse click from closing the menu before it lands", async () => {
+    // Real focus transitions can't be simulated here; this pins the two guards
+    const { trigger, screen, userEvent } = await setup();
+    await userEvent(trigger, "click");
+    expect(trigger.parentElement?.getAttribute("tabindex")).toBe("-1");
+    const items = [...screen.querySelectorAll('[role="menuitemradio"]')];
+    expect(items.every((i) => i.hasAttribute("preventdefault:mousedown"))).toBe(true);
+  });
+
   it("closes on Escape without changing the layout", async () => {
     const { trigger, screen, userEvent } = await setup();
     await userEvent(trigger, "click");

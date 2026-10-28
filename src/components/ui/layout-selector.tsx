@@ -40,6 +40,9 @@ export const LayoutSelector = component$<LayoutSelectorProps>(
     return (
       <div
         class="relative"
+        // Safari and macOS Firefox don't focus buttons on click: a focusable
+        // container keeps focus inside the menu so it isn't closed mid-click
+        tabIndex={-1}
         onFocusOut$={(event, element) => {
           const next = (event as FocusEvent).relatedTarget as Node | null;
           if (!next || !element.contains(next)) isOpen.value = false;
@@ -96,6 +99,8 @@ export const LayoutSelector = component$<LayoutSelectorProps>(
                 role="menuitemradio"
                 aria-checked={current === variant ? "true" : "false"}
                 tabIndex={current === variant ? 0 : -1}
+                // Keep focus where it is on mouse down so the click lands
+                preventdefault:mousedown
                 class={`text-left px-3 py-2.5 text-sm font-bold hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary transition-colors border-t-2 border-border/20 first:border-t-0 ${current === variant ? "bg-primary text-primary-foreground hover:bg-primary-dark" : "text-surface-dark"}`}
                 onClick$={async () => {
                   await onSelect$(variant);
