@@ -39,3 +39,14 @@ Branch: `fix/session-hardening` · Delivery: ask-on-risk · Test runner: Vitest
     - the honeypot returns 200 and stores no row, and 2001 characters return 400;
     - the 6th submission returns 429; a new session from the same IP returns 429, and from a new IP returns 200.
   - Risk: item 2. An independent verifier was launched.
+- **L6** (2026-10-28): native review (lens: reliability, user consent `granted`, lineage `review-4cc0ebd1c2ab009f`): approved and acknowledged. R3-layout-content-type-caller was refuted, because `src/routes/layout.tsx:45` already sends `Content-Type: application/json`.
+- **L7** (2026-10-28): independent verifier verdict: PASS for S1–S5 with no blockers. Old flagless cookies are upgraded and keep their data. A browser cannot set `X-Forwarded-Host` cross-site without a preflight, so CSRF is not weakened.
+- **L8** (2026-10-28, user): "corrige lo del rate limit y haz merge". Added `takeAll` and `release`: both keys are checked together and consumed only when both are under the limit, and the attempt is refunded when the save fails.
+  - RED: 2 new tests failed. GREEN: 71/71; tsc, eslint and build are clean.
+  - End to end: an exhausted session gets 429 from a new IP, and that IP then still gets its full 5 submissions before a 429.
+- **L9** (2026-10-28): follow-ups, none worse than baseline.
+  - The limit relies on Railway overwriting `X-Forwarded-For`. Requests without a cookie always get a fresh session, so only the IP key limits bots. Consider the right-most entry or a configurable number of trusted hops.
+  - The `Secure` cookie means a production build served over plain http (a LAN IP, or Safari on localhost) loses its session.
+  - The first visit creates 2 user rows because the parallel loaders each mint an id (pre-existing).
+  - A password manager could autofill the honeypot.
+  - The feedback action has no integration test.
