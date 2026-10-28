@@ -26,10 +26,7 @@ import {
   exerciseBelongsToLesson,
   exerciseResultSchema,
 } from "../../../server/progress-rules";
-import {
-  esDvorakLayout,
-  usDvorakIntlLayout,
-} from "../../../data/dvorak-layout";
+import { getLayoutDefinition } from "../../../data/layout-registry";
 import { type TypingStats } from "../../../data/types";
 import { TypingArea } from "../../../components/ui/typing-area";
 import { Keyboard } from "../../../components/ui/keyboard";
@@ -294,19 +291,13 @@ export default component$(() => {
         <div class="flex items-center justify-between mb-2 px-2">
           <div class="text-sm font-bold text-surface-dark/60 uppercase tracking-widest flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-state-success animate-pulse"></span>
-            {layoutVariant.value === "us-dvorak-intl"
-              ? usDvorakIntlLayout.name
-              : esDvorakLayout.name}
+            {getLayoutDefinition(layoutVariant.value).layout.name}
           </div>
         </div>
         <div class="brutal-card bg-surface p-4 sm:p-6 overflow-x-auto custom-scrollbar flex justify-center">
           <div class="min-w-162.5">
             <Keyboard
-              layout={
-                layoutVariant.value === "us-dvorak-intl"
-                  ? usDvorakIntlLayout
-                  : esDvorakLayout
-              }
+              layout={getLayoutDefinition(layoutVariant.value).layout}
               targetChar={
                 currentExercise.value.content[currentTypingIndex.value]
               }

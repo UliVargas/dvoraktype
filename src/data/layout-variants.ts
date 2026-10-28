@@ -8,8 +8,8 @@
 // 2. us-dvorak-intl — Dvorak estadounidense con teclas muertas internacionales
 //    (H en fila guía, R en fila superior, posiciones estándar US Dvorak)
 //
-// La variante por defecto es es-dvorak-xkb ya que este tutor está diseñado
-// primariamente para la distribución Dvorak en español.
+// El registro (layout-registry.ts) asocia estos metadatos a cada distribución
+// y define la variante por defecto.
 // ============================================================================
 
 import type { LayoutVariant } from "./types";
@@ -62,55 +62,3 @@ export const US_DVORAK_INTL: LayoutVariantConfig = {
     "H está en la fila guía y R en la fila superior (posiciones estándar US Dvorak). " +
     "Para escribir ñ se usa la secuencia tecla muerta ~ seguida de n.",
 } as const;
-
-
-export const LAYOUT_VARIANTS: ReadonlyMap<LayoutVariant, LayoutVariantConfig> =
-  new Map([
-    ["es-dvorak-xkb", ES_DVORAK_XKB],
-    ["us-dvorak-intl", US_DVORAK_INTL],
-  ]);
-
-// ===================================================================
-// Distribución por defecto
-// ===================================================================
-export const DEFAULT_LAYOUT: LayoutVariant = "es-dvorak-xkb";
-
-// ===================================================================
-// Detección automática de variante
-// ===================================================================
-// Intenta detectar la variante de distribución probable basándose en el User-Agent.
-// - Linux -> es-dvorak-xkb
-// - macOS/Windows -> us-dvorak-intl
-// ===================================================================
-export function detectLayoutVariant(userAgent: string): LayoutVariant {
-  // Normalizar a minúsculas para búsqueda más fiable
-  const ua = userAgent.toLowerCase();
-
-  // Linux suele usar XKB, que incluye la variante es(dvorak)
-  if (ua.includes("linux")) {
-    return "es-dvorak-xkb";
-  }
-
-  // macOS y Windows usan la distribución US Dvorak International
-  if (
-    ua.includes("macintosh") ||
-    ua.includes("mac os") ||
-    ua.includes("windows")
-  ) {
-    return "us-dvorak-intl";
-  }
-
-  // Por defecto, asumir la variante española de XKB
-  return DEFAULT_LAYOUT;
-}
-
-
-export function getLayoutVariantConfig(
-  variant: LayoutVariant,
-): LayoutVariantConfig {
-  const config = LAYOUT_VARIANTS.get(variant);
-  if (!config) {
-    throw new Error(`Variante de distribución desconocida: ${variant}`);
-  }
-  return config;
-}

@@ -6,7 +6,7 @@ import { ensureSessionId } from "../server/session";
 import { LessonCard } from "../components/ui/lesson-card";
 import { ProgressBar } from "../components/ui/progress-bar";
 import { Keyboard } from "../components/ui/keyboard";
-import { esDvorakLayout, usDvorakIntlLayout } from "../data/dvorak-layout";
+import { getLayoutDefinition } from "../data/layout-registry";
 import { useLayoutVariant } from "../context/layout-context";
 
 export const useLessonsProgress = routeLoader$(async (requestEvent) => {
@@ -37,10 +37,7 @@ export default component$(() => {
     (progressData.value.completedCount / progressData.value.totalLessons) * 100,
   );
 
-  const currentLayout =
-    layoutVariant.value === "us-dvorak-intl"
-      ? usDvorakIntlLayout
-      : esDvorakLayout;
+  const currentLayout = getLayoutDefinition(layoutVariant.value).layout;
 
   return (
     <div class="space-y-10 animate-fade-in">

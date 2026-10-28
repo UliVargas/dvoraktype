@@ -9,6 +9,7 @@ import {
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { routeLoader$ } from "@builder.io/qwik-city";
 import { type LayoutVariant } from "../data/types";
+import { DEFAULT_LAYOUT, isLayoutVariant } from "../data/layout-registry";
 import { progressService } from "../server/progress.service";
 import { ensureSessionId } from "../server/session";
 
@@ -24,7 +25,10 @@ export const useLayoutVariantLoader = routeLoader$(async (requestEvent) => {
   const sessionId = ensureSessionId(requestEvent.cookie);
 
   const settings = await progressService.getUserSettings(sessionId);
-  return settings.layoutVariant as LayoutVariant;
+  // Stored values from removed variants fall back to the default layout
+  return isLayoutVariant(settings.layoutVariant)
+    ? settings.layoutVariant
+    : DEFAULT_LAYOUT;
 });
 
 export default component$(() => {

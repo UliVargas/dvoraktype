@@ -10,7 +10,7 @@
 // event.key, que el navegador ofusca para teclas muertas (Dead keys).
 // ============================================================================
 
-import type { KeyDef, KeyboardLayout, FingerName } from "./types";
+import type { KeyDef, KeyboardLayout } from "./types";
 
 // ---------------------------------------------------------------------------
 // Fila de números (number row) — ES Dvorak
@@ -1067,54 +1067,3 @@ export const usDvorakIntlLayout: KeyboardLayout = {
     space: spaceRow,
   },
 } as const;
-
-// ---------------------------------------------------------------------------
-// Mapa interno: carácter → KeyDef (se construye una sola vez combinando ambos)
-// ---------------------------------------------------------------------------
-
-/** Mapa plano de todos los KeyDef de la distribución (usamos el español por defecto para buscar, o mapeamos todos) */
-const allKeys: readonly KeyDef[] = [
-  ...numberRow,
-  ...topRow,
-  ...homeRow,
-  ...bottomRow,
-  ...spaceRow,
-  ...usNumberRow,
-  ...usTopRow,
-  ...usHomeRow,
-  ...usBottomRow,
-];
-
-// ===================================================================
-// Mapa de búsqueda: carácter (minúscula/mayúscula/símbolo) → KeyDef.
-// Incluye tanto la capa base (`key`) como la capa Shift (`shiftKey`).
-// ===================================================================
-const charToKeyMap: ReadonlyMap<string, KeyDef> = (() => {
-  const map = new Map<string, KeyDef>();
-  for (const keyDef of allKeys) {
-    map.set(keyDef.key, keyDef);
-    if (keyDef.shiftKey !== undefined) {
-      map.set(keyDef.shiftKey, keyDef);
-    }
-  }
-  return map;
-})();
-
-// ---------------------------------------------------------------------------
-// Funciones auxiliares de búsqueda
-// ---------------------------------------------------------------------------
-
-// ===================================================================
-// Devuelve la definición de tecla (KeyDef) que produce el carácter dado,
-// ya sea en la capa base o con Shift.
-// ===================================================================
-export function getKeyForChar(char: string): KeyDef | undefined {
-  return charToKeyMap.get(char);
-}
-
-// ===================================================================
-// Devuelve el nombre del dedo asignado para pulsar el carácter dado.
-// ===================================================================
-export function getFingerForChar(char: string): FingerName | undefined {
-  return charToKeyMap.get(char)?.finger;
-}

@@ -1,0 +1,358 @@
+{
+ "es-dvorak-xkb": {
+  " ": [
+   "Space"
+  ],
+  "!": [
+   "Digit1"
+  ],
+  "\"": [
+   "Digit2"
+  ],
+  ",": [
+   "KeyW"
+  ],
+  "-": [
+   "KeyZ"
+  ],
+  ".": [
+   "KeyQ"
+  ],
+  ":": [
+   "KeyQ"
+  ],
+  ";": [
+   "KeyW"
+  ],
+  "?": [
+   "Minus"
+  ],
+  "B": [
+   "KeyN"
+  ],
+  "C": [
+   "KeyI"
+  ],
+  "D": [
+   "KeyH"
+  ],
+  "E": [
+   "KeyD"
+  ],
+  "H": [
+   "KeyO"
+  ],
+  "I": [
+   "KeyG"
+  ],
+  "J": [
+   "KeyC"
+  ],
+  "L": [
+   "KeyP"
+  ],
+  "M": [
+   "KeyM"
+  ],
+  "N": [
+   "KeyL"
+  ],
+  "P": [
+   "KeyR"
+  ],
+  "Q": [
+   "KeyX"
+  ],
+  "S": [
+   "Semicolon"
+  ],
+  "T": [
+   "KeyK"
+  ],
+  "V": [
+   "Period"
+  ],
+  "a": [
+   "KeyA"
+  ],
+  "b": [
+   "KeyN"
+  ],
+  "c": [
+   "KeyI"
+  ],
+  "d": [
+   "KeyH"
+  ],
+  "e": [
+   "KeyD"
+  ],
+  "f": [
+   "KeyY"
+  ],
+  "g": [
+   "KeyU"
+  ],
+  "h": [
+   "KeyO"
+  ],
+  "i": [
+   "KeyG"
+  ],
+  "j": [
+   "KeyC"
+  ],
+  "k": [
+   "KeyV"
+  ],
+  "l": [
+   "KeyP"
+  ],
+  "m": [
+   "KeyM"
+  ],
+  "n": [
+   "KeyL"
+  ],
+  "o": [
+   "KeyS"
+  ],
+  "p": [
+   "KeyR"
+  ],
+  "q": [
+   "KeyX"
+  ],
+  "r": [
+   "KeyJ"
+  ],
+  "s": [
+   "Semicolon"
+  ],
+  "t": [
+   "KeyK"
+  ],
+  "u": [
+   "KeyF"
+  ],
+  "v": [
+   "Period"
+  ],
+  "w": [
+   "Comma"
+  ],
+  "x": [
+   "KeyB"
+  ],
+  "y": [
+   "KeyT"
+  ],
+  "z": [
+   "Slash"
+  ],
+  "¡": [
+   "Equal"
+  ],
+  "¿": [
+   "Equal"
+  ],
+  "á": [
+   "Quote",
+   "KeyA"
+  ],
+  "é": [
+   "Quote",
+   "KeyD"
+  ],
+  "í": [
+   "Quote",
+   "KeyG"
+  ],
+  "ñ": [
+   "KeyE"
+  ],
+  "ó": [
+   "Quote",
+   "KeyS"
+  ],
+  "ú": [
+   "Quote",
+   "KeyF"
+  ]
+ },
+ "us-dvorak-intl": {
+  " ": [
+   "Space"
+  ],
+  "!": [
+   "Digit1"
+  ],
+  "\"": [
+   "KeyQ"
+  ],
+  ",": [
+   "KeyW"
+  ],
+  "-": [
+   "Quote"
+  ],
+  ".": [
+   "KeyE"
+  ],
+  ":": [
+   "KeyZ"
+  ],
+  ";": [
+   "KeyZ"
+  ],
+  "?": [
+   "BracketLeft"
+  ],
+  "B": [
+   "KeyN"
+  ],
+  "C": [
+   "KeyI"
+  ],
+  "D": [
+   "KeyH"
+  ],
+  "E": [
+   "KeyD"
+  ],
+  "H": [
+   "KeyJ"
+  ],
+  "I": [
+   "KeyG"
+  ],
+  "J": [
+   "KeyC"
+  ],
+  "L": [
+   "KeyP"
+  ],
+  "M": [
+   "KeyM"
+  ],
+  "N": [
+   "KeyL"
+  ],
+  "P": [
+   "KeyR"
+  ],
+  "Q": [
+   "KeyX"
+  ],
+  "S": [
+   "Semicolon"
+  ],
+  "T": [
+   "KeyK"
+  ],
+  "V": [
+   "Period"
+  ],
+  "a": [
+   "KeyA"
+  ],
+  "b": [
+   "KeyN"
+  ],
+  "c": [
+   "KeyI"
+  ],
+  "d": [
+   "KeyH"
+  ],
+  "e": [
+   "KeyD"
+  ],
+  "f": [
+   "KeyY"
+  ],
+  "g": [
+   "KeyU"
+  ],
+  "h": [
+   "KeyJ"
+  ],
+  "i": [
+   "KeyG"
+  ],
+  "j": [
+   "KeyC"
+  ],
+  "k": [
+   "KeyV"
+  ],
+  "l": [
+   "KeyP"
+  ],
+  "m": [
+   "KeyM"
+  ],
+  "n": [
+   "KeyL"
+  ],
+  "o": [
+   "KeyS"
+  ],
+  "p": [
+   "KeyR"
+  ],
+  "q": [
+   "KeyX"
+  ],
+  "r": [
+   "KeyO"
+  ],
+  "s": [
+   "Semicolon"
+  ],
+  "t": [
+   "KeyK"
+  ],
+  "u": [
+   "KeyF"
+  ],
+  "v": [
+   "Period"
+  ],
+  "w": [
+   "Comma"
+  ],
+  "x": [
+   "KeyB"
+  ],
+  "y": [
+   "KeyT"
+  ],
+  "z": [
+   "Slash"
+  ],
+  "¡": [],
+  "¿": [],
+  "á": [
+   "KeyQ",
+   "KeyA"
+  ],
+  "é": [
+   "KeyQ",
+   "KeyD"
+  ],
+  "í": [
+   "KeyQ",
+   "KeyG"
+  ],
+  "ñ": [],
+  "ó": [
+   "KeyQ",
+   "KeyS"
+  ],
+  "ú": [
+   "KeyQ",
+   "KeyF"
+  ]
+ }
+}

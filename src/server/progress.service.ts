@@ -2,6 +2,7 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { users, lessonProgress, exerciseProgress, freePracticeStats, userSettings, feedbacks } from '../db/schema';
 import { lessons } from '../data/lessons';
+import { DEFAULT_LAYOUT } from '../data/layout-registry';
 import { evaluateExercise, isLessonUnlocked } from './progress-rules';
 
 export const progressService = {
@@ -161,7 +162,7 @@ export const progressService = {
     const result = await db.select().from(userSettings).where(eq(userSettings.userId, sessionId));
     if (result.length === 0) {
       // Return defaults
-      return { layoutVariant: 'es-dvorak-xkb' };
+      return { layoutVariant: DEFAULT_LAYOUT };
     }
     return result[0];
   },

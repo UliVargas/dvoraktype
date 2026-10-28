@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isLayoutVariant } from "../data/layout-registry";
 import type { LayoutVariant } from "../data/types";
 
 // ===================================================================
@@ -18,8 +19,6 @@ export const feedbackSchema = z.object({
 export function isHoneypotFilled(data: { website?: string }): boolean {
   return !!data.website;
 }
-
-const LAYOUT_VARIANTS: readonly LayoutVariant[] = ["es-dvorak-xkb", "us-dvorak-intl"];
 
 export type LayoutRequest =
   | { ok: true; variant: LayoutVariant }
@@ -45,10 +44,10 @@ export function parseLayoutRequest(
   }
 
   const variant = (parsed as { variant?: unknown } | null)?.variant;
-  if (!LAYOUT_VARIANTS.includes(variant as LayoutVariant)) {
+  if (!isLayoutVariant(variant)) {
     return { ok: false, error: "Invalid variant" };
   }
-  return { ok: true, variant: variant as LayoutVariant };
+  return { ok: true, variant };
 }
 
 const firstValue = (header: string | undefined) =>

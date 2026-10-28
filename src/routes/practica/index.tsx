@@ -5,7 +5,7 @@ import { type TypingStats } from "../../data/types";
 import { TypingArea } from "../../components/ui/typing-area";
 import { Keyboard } from "../../components/ui/keyboard";
 import { StatsBar } from "../../components/ui/stats-bar";
-import { esDvorakLayout, usDvorakIntlLayout } from "../../data/dvorak-layout";
+import { getLayoutDefinition } from "../../data/layout-registry";
 import { getRandomQuote, type Quote } from "../../data/quotes";
 import { progressService } from "../../server/progress.service";
 import { getSessionId } from "../../server/session";
@@ -33,10 +33,8 @@ export default component$(() => {
   const resetKey = useSignal(Date.now().toString());
   const currentTypingIndex = useSignal(0);
 
-  const currentLayout = useComputed$(() =>
-    layoutVariant.value === "us-dvorak-intl"
-      ? usDvorakIntlLayout
-      : esDvorakLayout,
+  const currentLayout = useComputed$(
+    () => getLayoutDefinition(layoutVariant.value).layout,
   );
 
   const handleComplete = $((stats: TypingStats) => {

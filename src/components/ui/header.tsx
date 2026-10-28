@@ -1,7 +1,11 @@
-import { component$, useSignal, useContext } from "@builder.io/qwik";
+import { component$, Fragment, useSignal, useContext } from "@builder.io/qwik";
 import { Link, useLocation } from "@builder.io/qwik-city";
 import { LuSun, LuMoon } from "@qwikest/icons/lucide";
 import { LogoIcon } from "./logo-icon";
+import {
+  LAYOUT_VARIANT_IDS,
+  getLayoutDefinition,
+} from "../../data/layout-registry";
 import {
   LayoutVariantContext,
   ThemeContext,
@@ -88,37 +92,29 @@ export const Header = component$(() => {
               }
               class="border-2 border-border shadow-brutal-sm rounded-brutal-sm px-3 py-1.5 text-sm font-bold bg-surface-card text-surface-dark cursor-pointer transition-all hover:translate-x-px hover:translate-y-px hover:shadow-brutal-pressed focus:outline-none flex items-center justify-between min-w-50"
             >
-              <span>
-                {currentVariant.value === "es-dvorak-xkb"
-                  ? "Dvorak Español"
-                  : "Dvorak US Internacional"}
-              </span>
+              <span>{getLayoutDefinition(currentVariant.value).layout.name}</span>
               <span class="text-[10px] ml-2 opacity-70">▼</span>
             </button>
 
             {isLayoutDropdownOpen.value && (
               <div class="absolute top-full right-0 mt-2 w-full border-2 border-border shadow-brutal rounded-brutal-sm bg-surface-card overflow-hidden z-50 animate-fade-in flex flex-col">
-                <button
-                  type="button"
-                  class={`text-left px-3 py-2.5 text-sm font-bold hover:bg-surface-muted transition-colors ${currentVariant.value === "es-dvorak-xkb" ? "bg-primary text-primary-foreground hover:bg-primary-dark" : "text-surface-dark"}`}
-                  onClick$={() => {
-                    actions.changeLayout$("es-dvorak-xkb");
-                    isLayoutDropdownOpen.value = false;
-                  }}
-                >
-                  Dvorak Español
-                </button>
-                <div class="w-full h-0.5 bg-border opacity-20"></div>
-                <button
-                  type="button"
-                  class={`text-left px-3 py-2.5 text-sm font-bold hover:bg-surface-muted transition-colors ${currentVariant.value === "us-dvorak-intl" ? "bg-primary text-primary-foreground hover:bg-primary-dark" : "text-surface-dark"}`}
-                  onClick$={() => {
-                    actions.changeLayout$("us-dvorak-intl");
-                    isLayoutDropdownOpen.value = false;
-                  }}
-                >
-                  Dvorak US Int.
-                </button>
+                {LAYOUT_VARIANT_IDS.map((variant, index) => (
+                  <Fragment key={variant}>
+                    {index > 0 && (
+                      <div class="w-full h-0.5 bg-border opacity-20"></div>
+                    )}
+                    <button
+                      type="button"
+                      class={`text-left px-3 py-2.5 text-sm font-bold hover:bg-surface-muted transition-colors ${currentVariant.value === variant ? "bg-primary text-primary-foreground hover:bg-primary-dark" : "text-surface-dark"}`}
+                      onClick$={() => {
+                        actions.changeLayout$(variant);
+                        isLayoutDropdownOpen.value = false;
+                      }}
+                    >
+                      {getLayoutDefinition(variant).menuLabel}
+                    </button>
+                  </Fragment>
+                ))}
               </div>
             )}
           </div>

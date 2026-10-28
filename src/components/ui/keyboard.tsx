@@ -1,5 +1,6 @@
 import { component$, useSignal, useOnDocument, $ } from "@builder.io/qwik";
 import { type KeyboardLayout } from "../../data/types";
+import { getKeyCodesForChar } from "../../data/layout-registry";
 import { Keycap } from "./keycap";
 
 interface KeyboardProps {
@@ -32,68 +33,8 @@ export const Keyboard = component$<KeyboardProps>(({ layout, targetChar }) => {
     }),
   );
 
-  const getTargetCodes = (char?: string): string[] => {
-    if (!char) return [];
-
-    const charToCode = new Map<string, string>();
-    for (const rowName of Object.keys(layout.rows) as Array<
-      keyof typeof layout.rows
-    >) {
-      for (const keyDef of layout.rows[rowName]) {
-        charToCode.set(keyDef.key, keyDef.code);
-        if (keyDef.shiftKey) {
-          charToCode.set(keyDef.shiftKey, keyDef.code);
-        }
-      }
-    }
-
-    if (layout.variant === "es-dvorak-xkb") {
-      const composed: Record<string, string[]> = {
-        á: ["´", "a"],
-        é: ["´", "e"],
-        í: ["´", "i"],
-        ó: ["´", "o"],
-        ú: ["´", "u"],
-        Á: ["´", "A"],
-        É: ["´", "E"],
-        Í: ["´", "I"],
-        Ó: ["´", "O"],
-        Ú: ["´", "U"],
-        ü: ["¨", "u"],
-        Ü: ["¨", "U"],
-      };
-      if (composed[char]) {
-        return composed[char]
-          .map((c) => charToCode.get(c))
-          .filter((c): c is string => !!c);
-      }
-    }
-
-    if (layout.variant === "us-dvorak-intl") {
-      const composed: Record<string, string[]> = {
-        á: ["'", "a"],
-        é: ["'", "e"],
-        í: ["'", "i"],
-        ó: ["'", "o"],
-        ú: ["'", "u"],
-        Á: ["'", "A"],
-        É: ["'", "E"],
-        Í: ["'", "I"],
-        Ó: ["'", "O"],
-        Ú: ["'", "U"],
-        ü: ['"', "u"],
-        Ü: ['"', "U"],
-      };
-      if (composed[char]) {
-        return composed[char]
-          .map((c) => charToCode.get(c))
-          .filter((c): c is string => !!c);
-      }
-    }
-
-    const code = charToCode.get(char);
-    return code ? [code] : [];
-  };
+  const getTargetCodes = (char?: string): string[] =>
+    char ? getKeyCodesForChar(layout.variant, char) : [];
 
   const isTargetKey = (code: string) => {
     if (!targetChar) return false;
