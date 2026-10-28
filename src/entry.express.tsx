@@ -18,6 +18,8 @@ import render from "./entry.ssr";
 import express from "express";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { connectionString } from "./db";
+import { runMigrations } from "./db/migrate";
 
 declare global {
   type QwikCityPlatform = PlatformNode;
@@ -27,6 +29,15 @@ declare global {
 const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");
 const buildDir = join(distDir, "build");
 const assetsDir = join(distDir, "assets");
+const migrationsDir = join(fileURLToPath(import.meta.url), "..", "..", "drizzle");
+
+// Never fall back to the local development database in production
+if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
+  throw new Error("DATABASE_URL is required in production");
+}
+
+// Bring the database schema up to date before accepting traffic
+await runMigrations(connectionString, migrationsDir);
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;

@@ -2,10 +2,10 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-// This is required for Qwik to run correctly in server-side mode
-// Avoid establishing connections at the module level if possible,
-// but for a simple postgres setup, a singleton client is fine.
-const connectionString =
+// The local fallback matches compose.yml and is only for development.
+// The production server refuses to start without DATABASE_URL (entry.express.tsx);
+// the check can't live here because the build imports this module too.
+export const connectionString =
   process.env.DATABASE_URL ||
   "postgres://admin:password@localhost:5432/dvorak_db";
 

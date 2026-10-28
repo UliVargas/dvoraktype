@@ -55,6 +55,7 @@ COPY --chown=node:node package.json .
 COPY --from=deps --chown=node:node /usr/src/app/node_modules ./node_modules
 COPY --from=build --chown=node:node /usr/src/app/dist ./dist
 COPY --from=build --chown=node:node /usr/src/app/server ./server
+COPY --from=build --chown=node:node /usr/src/app/drizzle ./drizzle
 
 # Expose the port that the application listens on.
 EXPOSE 3000

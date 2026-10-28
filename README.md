@@ -21,7 +21,7 @@
 
 - **Frontend**: [Qwik](https://qwik.builder.io/) - Framework de última generación, súper rápido gracias a su reanudabilidad (resumability).
 - **Estilos**: [Tailwind CSS v4](https://tailwindcss.com/) - Arquitectura de utilidades con tokens nativos.
-- **Base de Datos**: [Turso](https://turso.tech/) (SQLite distribuida) conectada a través de [Drizzle ORM](https://orm.drizzle.team/).
+- **Base de Datos**: [PostgreSQL](https://www.postgresql.org/) conectada a través de [Drizzle ORM](https://orm.drizzle.team/) y `postgres-js`.
 - **Iconos**: [Lucide Icons](https://lucide.dev/).
 - **Validación**: Zod.
 
@@ -43,15 +43,17 @@ Asegúrate de tener Node.js (v24+) y `pnpm` instalados en tu sistema.
    pnpm install
    ```
 
-3. Configura las variables de entorno. Crea un archivo `.env` en la raíz del proyecto (basado en `.env.example` si existe) y añade la URL de tu base de datos Turso:
+3. Levanta PostgreSQL con Docker Compose y configura `DATABASE_URL` en un archivo `.env` en la raíz del proyecto:
+   ```bash
+   docker compose up -d db
+   ```
    ```env
-   DATABASE_URL="file:./local.db" # Para desarrollo local con SQLite
-   # O si usas Turso: DATABASE_URL="libsql://tu-db.turso.io"
+   DATABASE_URL="postgres://admin:password@localhost:5432/dvorak_db"
    ```
 
-4. Empuja el esquema a la base de datos local:
+4. Aplica las migraciones a la base de datos local:
    ```bash
-   pnpm drizzle-kit push
+   pnpm db:migrate
    ```
 
 5. Inicia el servidor de desarrollo:
@@ -60,6 +62,18 @@ Asegúrate de tener Node.js (v24+) y `pnpm` instalados en tu sistema.
    ```
 
 La aplicación estará corriendo en `http://localhost:5173`.
+
+### Migraciones de base de datos
+
+El esquema vive en `src/db/schema.ts` y las migraciones versionadas en `drizzle/`.
+
+- Después de cambiar el esquema, genera una migración nueva y súbela al repositorio junto con el cambio:
+  ```bash
+  pnpm db:generate
+  ```
+- En producción el servidor aplica las migraciones pendientes al arrancar, antes de aceptar tráfico (`src/db/migrate.ts`). Si la base de datos ya tenía las tablas iniciales pero no tenía historial de migraciones (por ejemplo, porque se creó con `drizzle-kit push`), la migración inicial se registra como aplicada y solo se ejecutan las posteriores.
+- No uses `drizzle-kit push` fuera de bases de datos desechables: modifica el esquema sin dejar historial, y así se ocultan migraciones que faltan.
+- En producción `DATABASE_URL` es obligatoria: sin ella el servidor no arranca.
 
 ## 🤝 Contribuciones
 
