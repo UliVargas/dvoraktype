@@ -44,3 +44,4 @@ Depends on: layout-variant-registry
   - Not verified end to end: the US Intl hint for `¿`/`¡` in the browser (unit level only).
   - Risk: none. A new variant value is additive, and the existing variants are pinned by the snapshot.
 - **L7** (2026-10-28): T4 (reply to the community comment) is pending and belongs to the user.
+- **L8** (2026-10-28): native review (lens: reliability, user consent `granted`, lineage `review-de8865cfe1de12a0`): approved and acknowledged. R3-001 (warning, informational): the keyboard hint for unsupported characters has no component-level test. This is the same gap as the "not verified end to end" note in L6, and it is a candidate for tests-and-ci or the accessibility follow-up.
